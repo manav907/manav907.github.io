@@ -1,0 +1,412 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Mochi the Blob was one of the first projects we started at Alpha Code Labs."><meta name="viewport" content="width=device-width"><title>From Jump Game to Mochi the Blob: Taking a Game From Idea to Market</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>From Jump Game to Mochi the Blob: Taking a Game From Idea to Market</h1>
+<p>Mochi the Blob was one of the first projects we started at Alpha Code Labs.</p>
+<p>Before Mochi, we had been working on a cricket game. We eventually decided to pivot toward making smaller games that we could develop and ship more quickly, with the goal of expanding our portfolio and learning from a wider range of products.</p>
+<p>One of the first projects to come out of that shift started with a simple idea inspired by Jump King.</p>
+<p>Internally, we called it Jump Game.</p>
+<p>The premise was straightforward: a vertical platformer where the player works their way upward through increasingly difficult spaces. But the reason we were interested in Jump King wasn&#39;t simply that it was difficult. It was the way it created difficulty.</p>
+<p>Traditional platformers such as Super Mario often depend on precise timing and quick reactions. You are moving, jumping, reacting to enemies, and making decisions under constant pressure. That works well with a controller, but we wanted something that could translate cleanly to a mobile screen with a much simpler control scheme.</p>
+<p>Jump King offered a different kind of challenge. The jumps could be calm and calculated. There was no constant pressure from a timer. The pressure came from the possibility of making the wrong decision and falling.</p>
+<p>That seemed like a good fit for mobile.</p>
+<p>Simple controls did not have to mean simple gameplay.</p>
+<h2>From a Three-Person Prototype to a Product</h2>
+<p>The project started with three people, and I led the charge.</p>
+<p>I was responsible for overall direction, core development, and technical leadership. I also broke the work down into tasks, assigned work to the other team members, reviewed their code, and handled technical issues that crossed team boundaries, including source-control problems in Plastic SCM.</p>
+<p>At the beginning, we were primarily trying to answer one question:</p>
+<p><strong>Was this core movement actually fun?</strong></p>
+<p>The prototype let us focus on that without having to build the entire game around it. We experimented with the jump, movement, camera, and early level layouts until the mechanic started to feel like something we could build a product around.</p>
+<p>Once that happened, the problem changed.</p>
+<p>We needed to turn a mechanic into a game.</p>
+<p>That meant creating levels, progression, scoring, collectables, onboarding, and the systems connecting them. The project gradually grew from a prototype into something that had to make sense as a complete player experience.</p>
+<p>I started treating level information as data rather than something that existed only inside individual Unity scenes. <code>LevelDataSO</code> became the model for things such as level references, difficulty, level size, and jump-count grading thresholds.</p>
+<p>That allowed other parts of the game to work from the same information. The level-select screen could show the zone, level number, difficulty, and size, while player records could provide best times, jump counts, and collectable progress.</p>
+<p>The implementation itself wasn&#39;t the interesting part.</p>
+<p>The important change was that levels were no longer just content. They had become part of the product&#39;s progression model.</p>
+<h2>Discovering What the Prototype Didn&#39;t Tell Us</h2>
+<p>One assumption that changed was how easy the movement would be for a new player to understand.</p>
+<p>We knew how Mochi worked because we had been building and testing it constantly. New players didn&#39;t.</p>
+<p>The jump arc wasn&#39;t always interpreted the way we expected, and that made the first interaction more important than we had initially assumed. If a player misunderstood the movement, they could become frustrated before discovering what made the game enjoyable.</p>
+<p>That pushed us toward iterating on onboarding: tutorial timing, first-time guidance, hint direction checks, and hint bubbles.</p>
+<p>The lesson was simple but important: a mechanic can be technically correct without being understandable.</p>
+<h2>Making It Ready for the Real World</h2>
+<p>As development progressed, the definition of &quot;done&quot; kept expanding.</p>
+<p>Having finished levels wasn&#39;t enough. We needed progression, player records, daily tasks, leaderboards, backend services, analytics, and monetization.</p>
+<p>I worked across those areas as the project moved toward release, including Firebase parameters, leaderboard architecture, and the migration from Firebase Realtime Database to Cloud Firestore.</p>
+<p>Monetization was another area where we initially kept our options open. The game supported AdMob, IronSource, and Unity Ads, with the advertising provider separated from the core game logic so we could evaluate different setups without tightly coupling the rest of the game to one provider.</p>
+<p>As we moved toward production, we ultimately settled on <strong>AdMob as the default advertising provider</strong>. The flexibility was useful during development, but shipping required making a concrete production choice.</p>
+<p>By this stage, &quot;the game&quot; meant more than the gameplay itself. It included the progression systems, UI, backend, analytics, advertising, platform configuration, and everything required to get the product onto a real device and store.</p>
+<h2>Publishing Is Its Own Engineering Problem</h2>
+<p>Getting the game ready for Google Play was not simply a matter of uploading an APK and waiting for it to appear.</p>
+<p>Publishing required a different kind of work: completing the required compliance information, preparing store assets, hosting a privacy policy, configuring the store listing, and making sure the product met the requirements necessary to actually be distributed.</p>
+<p>There was another complication on our side.</p>
+<p>Although the project team for Mochi was small, Alpha Code Labs as a whole had grown to around 13 people, and I was the only person on the team with previous hands-on experience actually publishing games to Google Play.</p>
+<p>My first published title had been released in 2018 and was no longer live by the time we were working on Mochi. I had also released another title in 2020, so while I wasn&#39;t approaching Google Play publishing for the first time, I was still working with a platform whose requirements and processes had to be handled carefully.</p>
+<p>That experience became useful beyond Mochi.</p>
+<p>I led the publishing requirements for Mochi and subsequently helped handle the publishing process for more than ten other titles we worked on at Alpha Code Labs.</p>
+<p>This was an important shift in my role. I wasn&#39;t only responsible for getting the game technically ready. I became one of the people responsible for getting the product through the final gap between <strong>&quot;it works on our devices&quot;</strong> and <strong>&quot;it is actually available to players.&quot;</strong></p>
+<h2>Publishing Changes the Problem</h2>
+<p>Once Mochi was released on Google Play, the source of our information changed again.</p>
+<p>Before release, most of our feedback came from ourselves and the people directly involved in development. After release, actual players became another source of evidence.</p>
+<p>Player behavior could challenge assumptions we had made during development. If players struggled with a level, for example, the problem wasn&#39;t automatically the level itself. It could have been the onboarding, the way the progression was presented, the hints, or simply the point at which the player encountered the challenge.</p>
+<p>That meant post-launch work became a loop:</p>
+<p><strong>Observe → understand → change → observe again.</strong></p>
+<p>Analytics helped provide quantitative signals, while qualitative observations helped explain what those signals meant. Difficulty, retries, and player confusion were no longer hypothetical concerns. They were things we could observe in the context of a shipped product.</p>
+<p>But something else became clear after release:</p>
+<p><strong>Development hadn&#39;t actually stopped.</strong></p>
+<h2>Shipping Wasn&#39;t the End</h2>
+<p>Mochi continued to receive development after launch.</p>
+<p>We worked on regular updates, new features, DevOps, maintenance, fixes, and the infrastructure required to keep the game running as a live product.</p>
+<p>That changed the way I thought about the relationship between development and release.</p>
+<p>A traditional development milestone makes it tempting to think in terms of a finish line: build the game, submit the game, get it approved, and move on.</p>
+<p>Mochi didn&#39;t really work that way.</p>
+<p>Once people were playing, the product had to keep changing with them. New features had to fit into the existing game. Updates had to be delivered reliably. Backend systems had to continue functioning. Bugs that never appeared during development could emerge under real-world conditions.</p>
+<p>The product was no longer something we were preparing for players.</p>
+<p>It was something that existed <strong>with</strong> players.</p>
+<h2>Then We Had to Market It</h2>
+<p>After getting the game into players&#39; hands, another problem became impossible to ignore:</p>
+<p><strong>How do you make someone care about the game before they&#39;ve played it?</strong></p>
+<p>A player inside Mochi already has enough context to interact with the game. We can teach the controls, show the jump arc, let them experience the consequences of falling, and gradually introduce the rest of the game.</p>
+<p>Someone seeing an advertisement has none of that context.</p>
+<p>We approached the problem at several levels.</p>
+<p>First, we created a <strong>playable ad</strong> that took the core interaction and adapted it into an advertising format. We worked with Luna Playworks and its playable-ad tooling to explore how much of Mochi&#39;s gameplay could be communicated through direct interaction.</p>
+<p>The challenge was to strip the experience down without losing what made it recognizable. The player needed to understand the basic interaction almost immediately, while still getting a sense of the calculated jumping and the consequences of making a bad move.</p>
+<p>We also created a <strong>video advertisement</strong> designed specifically to be engaging rather than simply functioning as a recording of gameplay. Instead of asking someone to interact, the video had to capture attention and communicate the appeal of Mochi quickly.</p>
+<div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="0.5625" style="aspect-ratio: 0.5625" width="360" height="640"><source src="/generated/media/video/a02a99f5c7e0aeea93fbaaf5c4a0d5b5/original.mp4" type="video/mp4" /></video></div><p>That distinction mattered.</p>
+<p>A gameplay clip shows what the game looks like. An advertisement has to communicate why someone should care.</p>
+<p>We then distributed advertising across multiple platforms, including Instagram, Facebook, YouTube, and the Google Play ecosystem, using the Meta and Google advertising platforms.</p>
+<p>Alongside paid advertising, we also produced organic social-media content for Instagram, YouTube, and Facebook.</p>
+<p>The organic posts did not generate the level of traffic that some of the team expected. That outcome was broadly in line with what I expected going in. Creating content and having an audience that reliably converts that content into game traffic are two different problems.</p>
+<p>For me, the useful takeaway was that <strong>distribution has to be evaluated separately from content production</strong>. A post can be well made without necessarily generating significant traffic, and visibility does not automatically translate into installs.</p>
+<p>Working across the playable ad, video advertising, paid acquisition, and organic social content made the relationship between game development and marketing much clearer.</p>
+<p>The audience had simply changed.</p>
+<p>During development, we were asking whether we could make the mechanic work.</p>
+<p>During onboarding, we were asking whether a new player could understand it.</p>
+<p>During marketing, we were asking whether someone who had never seen the game could understand enough to want to try it.</p>
+<h2>When the Leaderboard Became People</h2>
+<p>One of the more rewarding parts of continuing to operate Mochi was watching the leaderboard become more than a feature we had implemented.</p>
+<p>People were actually competing on it.</p>
+<p>We celebrated players who reached the top of the leaderboards, and those players came from countries including Peru, the Philippines, Bangladesh, India, Malaysia, Brazil, Honduras, Jamaica, Pakistan, Egypt, Argentina, Mongolia, and Iraq.</p>
+<p>Seeing those names and countries appear in the game changed the scale of what we had built.</p>
+<p>The project had started with three people experimenting with a movement mechanic.</p>
+<p>Now someone halfway around the world could open the game, play the levels we had built, compete for a position on a leaderboard, and become part of the product&#39;s ongoing story.</p>
+<p>Real players also produced some surprisingly strange technical stories. One of them became an article of its own:  <a href="/devlog/mochi-laos"><strong>&quot;Time Travelers from Laos Were Playing Our Game&quot;</strong></a>.</p>
+<p>That incident was a good example of the kinds of problems that only appear once software is operating in the real world. The full investigation is better covered separately, but it became one of the more memorable reminders that shipping a game means dealing with data, infrastructure, and player behavior you could never completely anticipate during development.</p>
+<h2>Looking Back at the Journey</h2>
+<p>Mochi started because we wanted to make smaller games.</p>
+<p>The original idea was deliberately constrained: take the calculated jumping of Jump King, simplify the controls, and see whether that kind of challenge could work on mobile.</p>
+<p>From there, the project expanded into a complete product: levels, progression, scoring, collectables, onboarding, backend systems, analytics, monetization, publishing, player feedback, marketing, live updates, and DevOps.</p>
+<p>What changed wasn&#39;t just the amount of work involved. The problem itself kept changing.</p>
+<p>At first, we were solving a game-design question.</p>
+<p>Then we were solving a production question.</p>
+<p>Then a publishing question.</p>
+<p>Then a player-understanding question.</p>
+<p>Then a communication and acquisition question.</p>
+<p>And after all of that, we were solving the much less glamorous but very real problem of <strong>keeping the product alive</strong>.</p>
+<p>The most useful thing I took from the project was how connected those stages really are. The same core mechanic had to survive every transition: it had to be fun, understandable, shippable, observable, marketable, and maintainable.</p>
+<p>Mochi started as three people experimenting with a prototype called Jump Game. It became a shipped mobile product, and then something more interesting: a product with real players, ongoing updates, competition, operational requirements, and an audience spread across the world.</p>
+<p>The biggest change wasn&#39;t when we published it.</p>
+<p>It was when the game stopped being something we were building for ourselves and became something other people were actually building experiences around.</p>
+<p>That&#39;s when the product really started.</p>
+</article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

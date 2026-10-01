@@ -1,0 +1,310 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="![[Movie_003.mp4|thumbnail]]"><meta name="viewport" content="width=device-width"><title>Building a Cyberpunk HDRP Race Track in Tokyo</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Building a Cyberpunk HDRP Race Track in Tokyo</h1>
+<div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080"><source src="/generated/media/video/5d3151f49d5bcee6ee583c80a8c30e44/crf16.mp4" type="video/mp4" /></video></div><p>TOKYO RACETRACK is a Unity HDRP environment project where I built a stylized, neon-lit Tokyo racing scene. I wanted to create a city environment that felt dense and atmospheric, but was also practical to explore, tune, and record for a portfolio.</p>
+<p>I brought together Japanese street assets, cyberpunk holograms, skyboxes, city-generation tools, lighting, and reflection probes to shape the scene. The fun part was finding the balance between making it look great and keeping it flexible enough to inspect while moving through it.</p>
+<p>To make that easier, I made a small runtime controller attached to the camera. It lets me change reflection quality with the mouse wheel, switch between realtime, time-sliced, on-demand, or disabled reflections, and adjust the camera&#39;s render distance with Ctrl + mouse wheel. That meant I could test different visual settings without constantly jumping back into the Unity editor.</p>
+<p>I also used occlusion culling, trigger-based lighting groups, and reflection-probe refreshes to keep the scene manageable. Unity Timeline and Recorder were included for capturing the environment once it was ready.</p>
+<p>The main goal was to make more than a nice-looking cyberpunk scene: I wanted a space that was easy to tune, inspect, and present. It was a great exercise in combining environment art with the small tools that make a real-time scene easier to work with.</p>
+</article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

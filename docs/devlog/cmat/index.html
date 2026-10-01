@@ -1,0 +1,476 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Mini Minds started as a one-week prototype."><meta name="viewport" content="width=device-width"><title>Architecture From Scratch So “One More Mini-Game” Doesn’t Become a Problem</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Architecture From Scratch So “One More Mini-Game” Doesn’t Become a Problem</h1>
+<p>Mini Minds started as a one-week prototype.</p>
+<p>The goal was not to build a complete educational gaming platform. It was to answer a simpler question: <strong>could we build something like this quickly, and would it actually be valuable?</strong></p>
+<p>The prototype answered that question well enough to justify continuing.</p>
+<p>But proving that an idea works and building something that can continue evolving are two different engineering problems.</p>
+<p>Mini Minds had been built around speed. It was useful for validating the concept, but it wasn&#39;t designed for several developers to work on different parts of the product at the same time. As the idea moved beyond the prototype stage, that limitation became more important.</p>
+<p>CMAT2 was the successor the game changed a lot under the hood even if it mostly stayed the same overall, a lot more polish was added and 2 new games were added as replacement.</p>
+<div class="article-media-group article-media-group--multiple"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="0.5625" style="aspect-ratio: 0.5625" width="1080" height="1920"><source src="/generated/media/video/4cc828d32b5b49a36e35a1a2f6b889cc/original.mp4" type="video/mp4" /></video><video autoplay controls loop muted playsinline preload="auto" aria-label="Movie_003_Verticle_1080x1920.mp4" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="0.5625" style="aspect-ratio: 0.5625" width="1080" height="1920"><source src="/generated/media/video/306ac0e151f82168239425982e8d8b3a/original.mp4" type="video/mp4" /></video></div><p>The goal was no longer simply to prove that we could make educational mini-games. We needed a codebase that could support a growing suite of them without turning every new game into another round of duplicated infrastructure.</p>
+<p>That changed how I approached the architecture from the beginning.</p>
+<h2>The Prototype Had Done Its Job</h2>
+<p>There was nothing inherently wrong with the original Mini Minds structure.</p>
+<p>For a one-week prototype, optimizing for speed made sense. The important thing was learning enough about the product to determine whether it was worth pursuing.</p>
+<p>The problem was that the assumptions that make a prototype effective are not necessarily the assumptions that make a product codebase scalable.</p>
+<p>Mini Minds had demonstrated that the concept could work.</p>
+<p>It also gave us a clearer picture of what the eventual product would need.</p>
+<p>There would not just be one game.</p>
+<p>There would be multiple game modes, levels, progression, player records, results, and eventually synchronization and reporting around those results.</p>
+<p>That created a new engineering question:</p>
+<blockquote>
+<p><strong>If we already know we&#39;re going to build more games, what should be designed once rather than rebuilt for every game?</strong></p>
+</blockquote>
+<p>That was the question behind CMAT2.</p>
+<h2>The First Constraint Was Parallel Development</h2>
+<p>The first problem wasn&#39;t performance.</p>
+<p>It wasn&#39;t memory usage.</p>
+<p>It wasn&#39;t even a particular bug.</p>
+<p>It was the structure of the codebase itself.</p>
+<p>When a prototype grows organically, it is easy for responsibilities to become intertwined. A game controller might know about its gameplay, UI, level setup, completion behavior, and persistence because, at prototype scale, there is little reason to separate them.</p>
+<p>That becomes harder when multiple people need to work on the project.</p>
+<p>If every game has its own interpretation of how levels start, finish, save, and progress, developers aren&#39;t simply working on different games. They are also working on different versions of the same underlying product behavior.</p>
+<p>That creates unnecessary coordination.</p>
+<p>I wanted CMAT2 to make the common parts explicit.</p>
+<p>A developer working on a new game should be able to concentrate on the game&#39;s rules without having to reinvent the application&#39;s lifecycle.</p>
+<h2>Looking for What Was Actually Common</h2>
+<p>The first step was identifying what the games genuinely had in common.</p>
+<p>The gameplay itself was not a good candidate.</p>
+<p>Match Cards and Number Pop have fundamentally different mechanics. Other modes such as Shape Match, Spot Objects, Spot Differences, Cars Coordination, and Nodulus introduced their own rules and interaction models.</p>
+<p>Trying to force those into one generic gameplay system would have created an abstraction that was technically shared but conceptually wrong.</p>
+<p>The commonality appeared somewhere else.</p>
+<p>Every game needed some version of:</p>
+<p><strong>Load → Start → Play → Complete → Record → Progress → Sync</strong></p>
+<p>The mechanics changed.</p>
+<p>The lifecycle did not.</p>
+<p>That became the first architectural boundary.</p>
+<h2>Building the Common Lifecycle</h2>
+<p>I introduced <code>BaseGameModeController</code> as the common contract for game modes.</p>
+<p>The important decision was not simply using inheritance. It was deciding which responsibilities belonged in the base layer and which remained with each game.</p>
+<p>The framework could own the common lifecycle.</p>
+<p>The game could own its rules.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">BaseGameModeController
+        |
+        +-- Match Cards
+        +-- Number Pop
+        +-- Shape Match
+        +-- Spot Objects
+        +-- Spot Differences
+        +-- Cars Coordination
+        +-- Nodulus
+</code></pre>
+<p>This meant a new game did not need to invent its own interpretation of the application&#39;s overall lifecycle.</p>
+<p>It needed to implement the parts that were actually unique.</p>
+<p>That distinction became important for keeping the architecture reusable without making it overly generic.</p>
+<h2>Configuration Was a Separate Problem</h2>
+<p>Once the lifecycle was shared, I needed to solve a different problem: how levels were described.</p>
+<p>Different games naturally required different settings.</p>
+<p>A Match Cards level needs different configuration from Number Pop. Trying to put every possible property into one universal configuration class would simply move the complexity somewhere else.</p>
+<p>Instead, CMAT2 used a shared <code>BaseLevelConfig</code> with game-specific derived configurations.</p>
+<p>The campaign could then contain those different configuration types and retrieve the appropriate configuration using a record key.</p>
+<pre><code class="language-text">Campaign
+   |
+   +-- BaseLevelConfig
+          |
+          +-- Match Cards Config
+          +-- Number Pop Config
+          +-- Shape Match Config
+          +-- Spot Objects Config
+          +-- ...
+</code></pre>
+<p>This gave the system a useful separation:</p>
+<p><strong>The campaign describes what should be played.</strong></p>
+<p><strong>The game decides how it is played.</strong></p>
+<p>The two could evolve independently.</p>
+<h2>The Important Discovery Was the Completion Flow</h2>
+<p>The next architectural boundary became obvious when I followed a level all the way to the end.</p>
+<p>A game finishing wasn&#39;t the end of the operation.</p>
+<p>The game produced a result. That result then had to move through several systems.</p>
+<p>The shared flow looked roughly like this:</p>
+<pre><code class="language-text">Level Complete
+      ↓
+LevelRecord
+      ↓
+Finish UI
+      ↓
+Badge Evaluation
+      ↓
+Profile Save
+      ↓
+Campaign Progress
+      ↓
+Server Sync
+</code></pre>
+<p>The <code>LevelRecord</code> became the handoff point.</p>
+<p>It captured information such as completion time, errors, interactions, completion timestamp, and synchronization state.</p>
+<p>This was useful because the gameplay code didn&#39;t need to know how every downstream system worked.</p>
+<p>The game produced the evidence of what happened.</p>
+<p>The rest of the application could decide what to do with that evidence.</p>
+<p>That made the architecture much easier to reason about.</p>
+<h2>The Record Also Solved a Mobile Problem</h2>
+<p>Once progress was represented as a local record, server synchronization did not need to be tightly coupled to gameplay.</p>
+<p>That mattered because mobile connectivity is not something a game should assume will always be available.</p>
+<p>A level could be completed and stored locally even if synchronization wasn&#39;t immediately possible.</p>
+<p>The record carried its sync state:</p>
+<pre><code class="language-text">Play
+ ↓
+Create LevelRecord
+ ↓
+Save locally
+ ↓
+Unsynced
+ ↓
+Batch synchronization
+ ↓
+Server confirmation
+ ↓
+Synced
+</code></pre>
+<p>The server synchronization layer could also merge remote records into local profile data while avoiding records that already existed locally.</p>
+<p>This was another example of keeping responsibilities separate.</p>
+<p>Gameplay shouldn&#39;t care whether the network is available.</p>
+<p>Progress persistence shouldn&#39;t require every game to implement its own networking.</p>
+<p>And the server shouldn&#39;t need to understand the internal mechanics of every mini-game.</p>
+<h2>The Architecture Was Really About the Next Developer</h2>
+<p>The prototype had optimized for answering:</p>
+<blockquote>
+<p>Can we build this?</p>
+</blockquote>
+<p>CMAT2 had to answer a different question:</p>
+<blockquote>
+<p>Can we keep building this?</p>
+</blockquote>
+<p>That distinction influenced the architecture.</p>
+<p>A reusable game lifecycle meant developers didn&#39;t need to coordinate around separate implementations of scene loading and completion.</p>
+<p>Shared level configuration meant new content could be represented through an established model.</p>
+<p>A common <code>LevelRecord</code> meant progress didn&#39;t depend on every game inventing its own persistence format.</p>
+<p>Shared finish and progression behavior meant the product could remain consistent even as the number of game modes increased.</p>
+<p>The framework wasn&#39;t intended to make every developer work on the same abstraction.</p>
+<p>It was intended to give them <strong>stable boundaries so they didn&#39;t have to</strong>.</p>
+<h2>Verification: Could a New Game Fit Without Rebuilding the Product?</h2>
+<p>The practical test was whether the architecture actually reduced the work involved in another game.</p>
+<p>The existing modes provided that test.</p>
+<p>Match Cards could maintain its own matching mechanics.</p>
+<p>Number Pop could maintain its own target, timing, accuracy, and scoring rules.</p>
+<p>Other modes could use different configuration types and gameplay logic.</p>
+<p>But they could still participate in the same broader flow:</p>
+<p><strong>Configure → Load → Play → Complete → Record → Progress → Sync</strong></p>
+<p>That was the behavior I wanted to preserve.</p>
+<p>The framework had not eliminated game-specific code.</p>
+<p>It had eliminated the need for every game to recreate the surrounding product infrastructure.</p>
+<h2>What I Took Away</h2>
+<p>The biggest lesson from moving from Mini Minds to CMAT2 was that <strong>prototype architecture and product architecture solve different problems</strong>.</p>
+<p>Mini Minds succeeded because it was fast enough to answer whether the concept was worth pursuing.</p>
+<p>CMAT2 had to solve what happened next.</p>
+<p>The useful abstraction wasn&#39;t &quot;a mini-game.&quot;</p>
+<p>It was everything that repeatedly happened <strong>around</strong> a mini-game.</p>
+<p>That led to a much more specific rule for deciding what belonged in the framework:</p>
+<blockquote>
+<p>If every game needs it regardless of its mechanics, it probably belongs in shared infrastructure.</p>
+</blockquote>
+<p>If only one game needs it because of its rules, it should probably stay with that game.</p>
+<p>That distinction kept the framework from becoming a giant generic game controller while still giving the project a consistent lifecycle.</p>
+<p>And that is what made &quot;one more mini-game&quot; a manageable engineering task instead of another architectural negotiation.</p>
+</article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

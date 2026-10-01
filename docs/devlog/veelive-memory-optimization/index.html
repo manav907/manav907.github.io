@@ -1,0 +1,456 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Career portfolio covering projects, experience, skills, and interests."><meta name="viewport" content="width=device-width"><title>Cutting RAM Use in Half by Doubling the Build Size</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Cutting RAM Use in Half by Doubling the Build Size</h1>
+<h2>Context</h2>
+<p>Around my second month at Idea Usher, I was given a fairly straightforward-sounding task on the VeeLive Metaverse Project: make the Unity WebGL application work reliably on mobile browsers.</p>
+<p>VeeLive is a multiplayer metaverse built with Unity and C#, targeting both desktop and mobile WebGL. It includes multiplayer presence, proximity-based voice through Photon Voice, in-game screen sharing through WebRTC, multiple environments, and a CI/CD pipeline that deploys WebGL builds to AWS.</p>
+<p>The mobile controls were not the difficult part.</p>
+<p>The difficult part was getting the application to survive on mobile devices.</p>
+<h2>The Problem: The App Would Simply Die</h2>
+<p>On most Android phones I tested, the behavior was inconsistent but understandable. The build would usually load, but when I tried loading a particularly large environment such as the Shopping Mall, Chrome would sometimes crash with an <strong>“Aw, Snap!”</strong> page indicating that the tab had run out of memory.</p>
+<p>iPhones were stranger.</p>
+<p>Instead of showing an obvious out-of-memory error, the page would silently reload at roughly the same point during loading. After a couple of attempts, Safari would eventually show a generic <strong>“Can’t Open the Page”</strong> message.</p>
+<p>There was no useful crash message telling me what had actually failed.</p>
+<p>That gave me several possible explanations. The build was large, WebGL was running inside a browser, and the failure happened while loading large environments. My first suspicion was therefore that the build itself was simply too large for mobile.</p>
+<p>That turned out to be only part of the story.</p>
+<h2>Investigation: Separating the Failure Modes</h2>
+<p>The initial WebGL build was around <strong>480 MB</strong>, so investigating the build size was a reasonable place to start.</p>
+<p>The build size was also more relevant to runtime memory than simply treating it as a downloadable file. A Unity WebGL application does not run like a native executable. It runs inside a browser environment, where the <strong>JavaScript engine, WebAssembly, loaded build data, and browser/runtime overhead</strong> all contribute to the page&#39;s memory footprint.</p>
+<p>That meant the <strong>480 MB build was already contributing to the application&#39;s baseline memory usage</strong> before the runtime assets for a large environment were loaded. Scenes, textures, meshes, materials, and other runtime allocations then added memory on top of that.</p>
+<p>So the initial suspicion that the build was too large was reasonable. I just did not yet know how much of the problem came from the build itself and how much came from what the application loaded on top of it.</p>
+<p>On iPhones, the behavior was different enough that I had to treat iOS as a separate part of the investigation.</p>
+<p>In this environment, I found that <strong>iOS imposed hard resource restrictions on web applications that were not obvious from the browser&#39;s failure behavior</strong>. Safari&#39;s theoretical storage quota also could not be treated as guaranteed capacity. A device might theoretically support a much larger quota, but that did not mean the application could safely assume that amount of storage would be available in practice. As available storage became more constrained, eviction and write failures became increasingly relevant.</p>
+<p>This mattered because the original WebGL build was around <strong>480 MB</strong>. When Data Caching was enabled, builds around the 500 MB range could trigger storage-related failures on some iPhones. In those cases, the page could be forcibly terminated without leaving useful application logs behind.</p>
+<p>That explained part of the behavior I was seeing, but it still did not explain why the application could crash after the caching issue was removed.</p>
+<p>I disabled <strong>Data Caching</strong> and retested.</p>
+<p>The caching-related failure disappeared, but the application could still crash when loading large environments.</p>
+<p>That was an important turning point. I had removed one possible cause and the underlying problem was still there.</p>
+<p>The investigation shifted from:</p>
+<p><strong>“Is the build too large to cache?”</strong></p>
+<p>to:</p>
+<p><strong>“How much memory does the WebGL application actually consume while running?”</strong></p>
+<h2>Getting Evidence From the Devices</h2>
+<p>I already understood that the RAM advertised for a device was not equivalent to the amount available to a browser application. An 8 GB phone does not give a WebGL page an 8 GB memory budget.</p>
+<p>What I needed to establish was how that limitation behaved on the actual devices we were targeting.</p>
+<p>Debugging the iPhone failures was particularly difficult because I did not have direct Safari developer-tool access to the devices available for testing.</p>
+<p>With the final logs often disappearing when the page reloaded, I could not rely on a clean crash report to tell me what had happened.</p>
+<p>I therefore approached the problem through multiple pieces of evidence: memory snapshots, available logs, repeated reproduction tests, and observations across different devices and browsers.</p>
+<p>The behavior was not identical everywhere. Some devices crashed, some managed to load further, and different browsers behaved differently.</p>
+<p>Across the devices where I could reproduce the issue, however, a pattern emerged.</p>
+<p>Going beyond roughly <strong>1,350 MB of runtime memory</strong> caused crashes on many of the target devices.</p>
+<p>I would not treat 1,350 MB as a universal WebGL, iOS, or Android limit. It was an <strong>observed practical boundary in our testing environment</strong>. But it gave me something much more useful than the device&#39;s advertised RAM: a measurable target for the application.</p>
+<p>At that point, the problem was no longer simply “mobile browsers don&#39;t like the build.”</p>
+<p>I had evidence that the application was exceeding the practical memory budget available to it.</p>
+<p>The next question was the important one:</p>
+<p><strong>What was consuming all that memory?</strong></p>
+<h2>Discovery #1: Too Much Content Was Being Loaded</h2>
+<p>The first major discovery was in the way the project handled its assets.</p>
+<p>The original VeeLive build was <strong>not using Unity Addressables</strong>. The project had been optimized mainly around having <strong>fewer files and smaller file sizes</strong>, which helped keep the overall build compact.</p>
+<p>That approach had an unfortunate consequence for a memory-constrained WebGL application.</p>
+<p>Too much content could remain available in memory even when it was not relevant to the environment the user was currently viewing.</p>
+<p>The Shopping Mall made the problem particularly obvious.</p>
+<p>It was a large environment containing a significant amount of geometry, textures, materials, and other assets. Those assets could contribute to memory usage even when the user was actually inside a much smaller environment such as a small office.</p>
+<p>The application was effectively carrying around content that the user did not currently need.</p>
+<p>I introduced <strong>Unity Addressables</strong> and restructured the project so that each environment could be packaged as its own independently loadable file.</p>
+<p>Instead of treating the project as one large collection of content, scenes could be loaded dynamically when required.</p>
+<p>The goal was straightforward:</p>
+<p><strong>Load the content needed for the current environment, rather than keeping unnecessary environments resident in memory.</strong></p>
+<p>There was an interesting trade-off. Splitting the project into independently loadable Addressable files <strong>dramatically increased the overall build size</strong>.</p>
+<p>For this project, that was worth it.</p>
+<p>I was deliberately trading <strong>build size for lower peak runtime memory usage</strong>. The application was failing because of memory pressure, so a larger collection of downloadable files was preferable to a smaller build that consumed too much RAM once running.</p>
+<p>Addressables solved the first major memory problem: <strong>asset residency</strong>.</p>
+<p>But it exposed another question.</p>
+<p>Even after reducing how much content was loaded, how expensive was the content that remained?</p>
+<h2>Discovery #2: Texture Memory Was a Separate Problem</h2>
+<p>The second discovery was that some individual assets were consuming far more GPU memory than their compressed versions needed.</p>
+<p>Texture format made a substantial difference.</p>
+<table>
+<thead>
+<tr>
+<th>Resolution</th>
+<th align="right">RGB32</th>
+<th align="right">Compressed (4 bpp)</th>
+<th align="right">Memory Saved</th>
+<th align="right">% Saved</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>512 × 512</td>
+<td align="right">1 MB</td>
+<td align="right"><strong>0.125 MB</strong></td>
+<td align="right"><strong>0.875 MB</strong></td>
+<td align="right"><strong>87.5%</strong></td>
+</tr>
+<tr>
+<td>1024 × 1024</td>
+<td align="right">4 MB</td>
+<td align="right"><strong>0.5 MB</strong></td>
+<td align="right"><strong>3.5 MB</strong></td>
+<td align="right"><strong>87.5%</strong></td>
+</tr>
+<tr>
+<td>2048 × 2048</td>
+<td align="right">16 MB</td>
+<td align="right"><strong>2 MB</strong></td>
+<td align="right"><strong>14 MB</strong></td>
+<td align="right"><strong>87.5%</strong></td>
+</tr>
+<tr>
+<td>4096 × 4096</td>
+<td align="right">64 MB</td>
+<td align="right"><strong>8 MB</strong></td>
+<td align="right"><strong>56 MB</strong></td>
+<td align="right"><strong>87.5%</strong></td>
+</tr>
+</tbody></table>
+<p>A single 4096 × 4096 texture could therefore represent a difference of roughly <strong>56 MB</strong> of memory compared with RGB32.</p>
+<p>Across a large environment containing many textures, those differences added up quickly.</p>
+<p>The project also had to support different desktop and mobile texture capabilities. Instead of manually overriding texture formats in individual <code>.meta</code> files, I changed the loading approach so the application could select an appropriate compressed format based on the device&#39;s supported texture formats.</p>
+<p>Where supported, formats such as <strong>ASTC</strong> could significantly reduce the memory cost of loaded textures.</p>
+<p>This was separate from the Addressables problem.</p>
+<p>Addressables controlled <strong>how much content was resident</strong>.</p>
+<p>Texture optimization controlled <strong>how expensive that resident content was</strong>.</p>
+<p>I also removed or optimized unnecessary materials, sprites, meshes, placeholder assets, and other large environment resources that were contributing to the footprint.</p>
+<h2>Root Cause</h2>
+<p>By this point, the failure was much clearer.</p>
+<p>It was not caused by one oversized scene or one browser limitation.</p>
+<p>The practical root cause was <strong>excessive peak memory usage in a browser environment with a much smaller usable memory budget than the device&#39;s advertised RAM suggested</strong>.</p>
+<p>Several factors compounded the problem:</p>
+<ul>
+<li><p>The WebGL application had a substantial baseline memory footprint.</p>
+</li>
+<li><p>The original loading strategy kept more project content resident than was necessary.</p>
+</li>
+<li><p>Large and inefficiently formatted textures increased the cost of the content that remained loaded.</p>
+</li>
+</ul>
+<p>The iOS caching issue was real, but it was a <strong>separate failure mode</strong>, rather than the complete explanation for the runtime crashes.</p>
+<h2>Fix and Verification</h2>
+<p>The fixes followed the problems uncovered during the investigation.</p>
+<p>I first disabled <strong>Data Caching</strong> to remove the separate iOS storage-related failure.</p>
+<p>I then introduced <strong>Addressables</strong> and split the environments into independently loadable scene files, reducing unnecessary runtime asset residency.</p>
+<p>Next, I optimized the assets themselves, including device-aware compressed texture loading and cleanup of unnecessary materials, sprites, meshes, textures, placeholders, and large environment assets.</p>
+<p>Finally, I reduced the baseline WebGL build footprint so that less memory was consumed before the heavier runtime content was loaded.</p>
+<p>The overall measured runtime memory footprint dropped from approximately <strong>2.1 GB to 1.02 GB</strong>.</p>
+<p>The important part was not just the number.</p>
+<p>I retested the same large environments that had previously caused mobile browsers to crash. The problematic environments could now load within a much more manageable memory range on the target devices.</p>
+<p>The result came from several independent changes rather than one magic optimization: removing the caching failure mode, controlling asset residency, reducing the cost of loaded assets, and lowering the baseline WebGL footprint.</p>
+<p>Interestingly, the final build was <strong>larger than the original in terms of downloadable files</strong>, largely because of the way the project had been split with Addressables.</p>
+<p>That was acceptable.</p>
+<p>The goal was never to produce the smallest possible build. It was to produce a build that could actually run reliably within the memory constraints of the devices we were targeting.</p>
+<h2>Lessons</h2>
+<h3>1. Device RAM is not the browser application&#39;s memory budget</h3>
+<p>I already understood this principle before the investigation, so it was not itself a discovery.</p>
+<p>What I had to establish was how that constraint behaved on our actual devices. The roughly <strong>1,350 MB practical boundary</strong> came from testing, not from treating a device specification as an application memory limit.</p>
+<p>I also had to explain this distinction to others on the project. Seeing a device with 4 GB or 8 GB of RAM can make it tempting to assume that the WebGL application has access to something close to that amount. In reality, the available memory depends on the operating system, browser, device, and other processes competing for memory.</p>
+<h3>2. WebGL memory problems have multiple layers</h3>
+<p>The build footprint and runtime asset usage are different contributors, but they ultimately compete within the same constrained browser environment.</p>
+<p>Reducing only one of them was not enough.</p>
+<p>The investigation worked because I stopped treating “memory usage” as a single number and looked at where that memory was coming from.</p>
+<h3>3. When the platform hides the failure, change the conditions</h3>
+<p>The iPhone crashes initially gave me almost no useful information.</p>
+<p>Disabling caching did not solve the entire problem, but it removed one failure mode and exposed another that could be measured.</p>
+<p>That turned an apparently silent browser failure into an investigation with a reproducible memory boundary, concrete evidence, and a measurable target for optimization.</p>
+<p>The final result was a useful reminder that in WebGL, <strong>making the build larger can sometimes be the right trade-off if it means making the running application smaller</strong>.</p>
+<div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="Trimmed 2026.08.25_14.14.51-00.00.14.541-00.00.36.560-seg1.mkv" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080"><source src="/generated/media/video/675f7e42948e83493591cf63e931766f/original.mp4" type="video/mp4" /></video></div><div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080"><source src="/generated/media/video/be721bdca61ff01745d777abb80df65d/crf16.mp4" type="video/mp4" /></video></div></article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

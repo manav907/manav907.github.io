@@ -1,0 +1,755 @@
+{
+  "iconBackgroundColor": "#ffffff",
+  "nodes": [
+    {
+      "key": "unity",
+      "label": "Unity",
+      "image": "/skill-logos/unity-icon.svg"
+    },
+    {
+      "key": "c#",
+      "label": "C#",
+      "image": "/skill-logos/csharp.svg"
+    },
+    {
+      "key": "shader-graph",
+      "label": "Shader Graph",
+      "image": "to-be-added"
+    },
+    {
+      "key": "hdrp",
+      "label": "HDRP",
+      "image": "to-be-added"
+    },
+    {
+      "key": "dotween",
+      "label": "DOTween",
+      "image": "/skill-logos/dotween.png"
+    },
+    {
+      "key": "yarn-spinner",
+      "label": "Yarn Spinner",
+      "image": "/skill-logos/yarn-spinner.png"
+    },
+    {
+      "key": "webgl",
+      "label": "WebGL",
+      "image": "/skill-logos/webgl.svg"
+    },
+    {
+      "key": "xr",
+      "label": "XR"
+    },
+    {
+      "key": "roblox-studio",
+      "label": "Roblox Studio",
+      "image": "/skill-logos/roblox.svg"
+    },
+    {
+      "key": "unreal-engine",
+      "label": "Unreal Engine",
+      "image": "/skill-logos/unreal-engine.svg"
+    },
+    {
+      "key": "unreal-editor-for-fortnite",
+      "label": "Unreal Editor for Fortnite",
+      "image": "/skill-logos/unreal-engine.svg"
+    },
+    {
+      "key": "android-studio",
+      "label": "Android Studio",
+      "image": "/skill-logos/android-studio.svg"
+    },
+    {
+      "key": "google-play",
+      "label": "Google Play",
+      "image": "/skill-logos/google-play.svg"
+    },
+    {
+      "key": "steam",
+      "label": "Steam",
+      "image": "/skill-logos/steam-icon.svg"
+    },
+    {
+      "key": "postman",
+      "label": "Postman",
+      "image": "/skill-logos/postman-icon.svg"
+    },
+    {
+      "key": "git",
+      "label": "Git",
+      "image": "/skill-logos/git.svg"
+    },
+    {
+      "key": "github",
+      "label": "GitHub",
+      "image": "/skill-logos/github.svg"
+    },
+    {
+      "key": "gitlab",
+      "label": "GitLab",
+      "image": "/skill-logos/gitlab.svg"
+    },
+    {
+      "key": "github-workflows",
+      "label": "GitHub Workflows",
+      "image": "to-be-added"
+    },
+    {
+      "key": "plastic-scm",
+      "label": "Plastic SCM",
+      "image": "/skill-logos/plastic-scm.svg"
+    },
+    {
+      "key": "visual-studio",
+      "label": "Visual Studio",
+      "image": "/skill-logos/visual-studio.svg"
+    },
+    {
+      "key": "vs-code",
+      "label": "VS Code",
+      "image": "to-be-added"
+    },
+    {
+      "key": "obsidian",
+      "label": "Obsidian",
+      "image": "/skill-logos/obsidian.svg"
+    },
+    {
+      "key": "firebase",
+      "label": "Firebase",
+      "image": "/skill-logos/firebase.svg"
+    },
+    {
+      "key": "cloud-firestore",
+      "label": "Cloud Firestore",
+      "image": "/skill-logos/firebase-firestore.svg"
+    },
+    {
+      "key": "realtime-database",
+      "label": "Realtime Database",
+      "image": "/skill-logos/firebase-realtime-database.svg"
+    },
+    {
+      "key": "cloud-messaging",
+      "label": "Cloud Messaging",
+      "image": "/skill-logos/firebase-cloud-messaging.svg"
+    },
+    {
+      "key": "mongodb",
+      "label": "MongoDB",
+      "image": "/skill-logos/mongodb-icon.svg"
+    },
+    {
+      "key": "rest-apis",
+      "label": "REST APIs"
+    },
+    {
+      "key": "webrtc",
+      "label": "WebRTC",
+      "image": "/skill-logos/webrtc.png"
+    },
+    {
+      "key": "onvif",
+      "label": "ONVIF",
+      "image": "/skill-logos/onvif.png"
+    },
+    {
+      "key": "mqtt",
+      "label": "MQTT",
+      "image": "/skill-logos/mqtt.svg"
+    },
+    {
+      "key": "sqlite",
+      "label": "SQLite",
+      "image": "/skill-logos/sqlite.svg"
+    },
+    {
+      "key": "livekit",
+      "label": "LiveKit",
+      "image": "/skill-logos/livekit.svg",
+      "iconBackgroundColor": "#000000"
+    },
+    {
+      "key": "agora",
+      "label": "Agora",
+      "image": "/skill-logos/agora.svg"
+    },
+    {
+      "key": "photon",
+      "label": "Photon",
+      "image": "/skill-logos/photon-icon.png"
+    },
+    {
+      "key": "aws",
+      "label": "AWS",
+      "image": "/skill-logos/aws.svg"
+    },
+    {
+      "key": "ec2",
+      "label": "EC2",
+      "image": "/skill-logos/aws-ec2.svg"
+    },
+    {
+      "key": "s3",
+      "label": "S3",
+      "image": "/skill-logos/aws-s3.svg"
+    },
+    {
+      "key": "amplify",
+      "label": "Amplify",
+      "image": "/skill-logos/aws-amplify.svg"
+    },
+    {
+      "key": "google-cloud",
+      "label": "Google Cloud",
+      "image": "/skill-logos/google-cloud-icon.svg"
+    },
+    {
+      "key": "azure",
+      "label": "Azure",
+      "image": "/skill-logos/azure.svg"
+    },
+    {
+      "key": "docker",
+      "label": "Docker",
+      "image": "/skill-logos/docker.svg"
+    },
+    {
+      "key": "linux",
+      "label": "Linux",
+      "image": "/skill-logos/linux-tux.svg"
+    },
+    {
+      "key": "debian",
+      "label": "Debian",
+      "image": "/skill-logos/debian.svg"
+    },
+    {
+      "key": "arch",
+      "label": "Arch",
+      "image": "/skill-logos/arch-linux.svg"
+    },
+    {
+      "key": "ubuntu",
+      "label": "Ubuntu",
+      "image": "/skill-logos/ubuntu.svg"
+    },
+    {
+      "key": "vps",
+      "label": "VPS"
+    },
+    {
+      "key": "vercel",
+      "label": "Vercel",
+      "image": "/skill-logos/vercel.svg"
+    },
+    {
+      "key": "netlify",
+      "label": "Netlify",
+      "image": "/skill-logos/netlify.svg"
+    },
+    {
+      "key": "google-ads",
+      "label": "Google Ads",
+      "image": "/skill-logos/google-ads.svg"
+    },
+    {
+      "key": "admob",
+      "label": "AdMob",
+      "image": "/skill-logos/googleadmob.svg"
+    },
+    {
+      "key": "python",
+      "label": "Python",
+      "image": "/skill-logos/python.svg"
+    },
+    {
+      "key": "c++",
+      "label": "C++",
+      "image": "/skill-logos/cpp.svg"
+    },
+    {
+      "key": "c",
+      "label": "C",
+      "image": "/skill-logos/c.svg"
+    },
+    {
+      "key": "javascript",
+      "label": "JavaScript",
+      "image": "/skill-logos/javascript.svg"
+    },
+    {
+      "key": "node.js",
+      "label": "Node.js",
+      "image": "/skill-logos/nodejs.svg"
+    },
+    {
+      "key": "npm",
+      "label": "npm",
+      "image": "/skill-logos/npm.svg"
+    },
+    {
+      "key": "html",
+      "label": "HTML",
+      "image": "/skill-logos/html5.svg"
+    },
+    {
+      "key": "css",
+      "label": "CSS",
+      "image": "/skill-logos/css.svg"
+    },
+    {
+      "key": "kotlin",
+      "label": "Kotlin",
+      "image": "/skill-logos/kotlin.svg"
+    },
+    {
+      "key": "java",
+      "label": "Java",
+      "image": "/skill-logos/java.svg"
+    },
+    {
+      "key": "win32-apis",
+      "label": "Win32 APIs",
+      "image": "to-be-added"
+    },
+    {
+      "key": "direct2d",
+      "label": "Direct2D",
+      "image": "to-be-added"
+    },
+    {
+      "key": "directwrite",
+      "label": "DirectWrite",
+      "image": "to-be-added"
+    },
+    {
+      "key": ".net-framework",
+      "label": ".NET Framework",
+      "image": "/skill-logos/dotnet.svg"
+    },
+    {
+      "key": "wpf",
+      "label": "WPF",
+      "image": "to-be-added"
+    },
+    {
+      "key": "hyper-v",
+      "label": "Hyper-V",
+      "image": "/skill-logos/hyper-v.svg"
+    },
+    {
+      "key": "vmware",
+      "label": "VMware",
+      "image": "/skill-logos/vmware.svg"
+    },
+    {
+      "key": "ahk",
+      "label": "AHK",
+      "image": "/skill-logos/autohotkey.svg"
+    },
+    {
+      "key": "rdp",
+      "label": "RDP"
+    },
+    {
+      "key": "ssh",
+      "label": "SSH"
+    },
+    {
+      "key": "nomachine",
+      "label": "NoMachine",
+      "image": "/skill-logos/nomachine.png"
+    },
+    {
+      "key": "parsec",
+      "label": "Parsec",
+      "image": "to-be-added"
+    },
+    {
+      "key": "tailscale",
+      "label": "Tailscale",
+      "image": "/skill-logos/tailscale.svg"
+    },
+    {
+      "key": "wireshark",
+      "label": "Wireshark",
+      "image": "/skill-logos/wireshark.svg"
+    },
+    {
+      "key": "adguard-server",
+      "label": "AdGuard Server",
+      "image": "/skill-logos/adguard.svg"
+    },
+    {
+      "key": "aseprite",
+      "label": "Aseprite",
+      "image": "/skill-logos/aseprite-icon.png"
+    },
+    {
+      "key": "adobe-photoshop",
+      "label": "Adobe Photoshop",
+      "image": "/skill-logos/adobe-photoshop.svg"
+    },
+    {
+      "key": "coreldraw",
+      "label": "CorelDRAW",
+      "image": "/skill-logos/coreldraw.svg"
+    },
+    {
+      "key": "adobe-premiere-pro",
+      "label": "Adobe Premiere Pro",
+      "image": "/skill-logos/adobe-premiere-pro.svg"
+    },
+    {
+      "key": "davinci-resolve",
+      "label": "DaVinci Resolve",
+      "image": "/skill-logos/davinci-resolve.png"
+    },
+    {
+      "key": "audacity",
+      "label": "Audacity",
+      "image": "/skill-logos/audacity.svg"
+    },
+    {
+      "key": "ffmpeg",
+      "label": "ffmpeg",
+      "image": "/skill-logos/ffmpeg-icon.svg"
+    },
+    {
+      "key": "obs",
+      "label": "OBS",
+      "image": "/skill-logos/obs-studio.svg"
+    },
+    {
+      "key": "canva",
+      "label": "Canva",
+      "image": "/skill-logos/canva.png"
+    },
+    {
+      "key": "figma",
+      "label": "Figma",
+      "image": "/skill-logos/figma.svg"
+    },
+    {
+      "key": "comfyui",
+      "label": "ComfyUI",
+      "image": "/skill-logos/comfyui.svg",
+      "iconBackgroundColor": "#222222"
+    },
+    {
+      "key": "github-copilot",
+      "label": "GitHub Copilot",
+      "image": "/skill-logos/github-copilot.svg"
+    },
+    {
+      "key": "claude-code",
+      "label": "Claude Code",
+      "image": "/skill-logos/anthropic.svg"
+    },
+    {
+      "key": "ollama",
+      "label": "Ollama",
+      "image": "/skill-logos/ollama.png"
+    },
+    {
+      "key": "codex",
+      "label": "Codex",
+      "image": "/skill-logos/openai.svg"
+    },
+    {
+      "key": "media-tools",
+      "label": "Media Tools"
+    },
+    {
+      "key": "ai-tools",
+      "label": "AI Tools"
+    },
+    {
+      "key": "programming-languages",
+      "label": "Programming Languages"
+    },
+    {
+      "key": "typescript",
+      "label": "TypeScript"
+    },
+    {
+      "key": "ide",
+      "label": "IDEs (Integrated Development Environments)"
+    },
+    {
+      "key": "networking-infrastructure",
+      "label": "Networking & Infrastructure"
+    },
+    {
+      "key": "cloud",
+      "label": "Cloud"
+    },
+    {
+      "key": "publishing",
+      "label": "Publishing"
+    },
+    {
+      "key": "databases",
+      "label": "Databases"
+    },
+    {
+      "key": "platforms",
+      "label": "Platforms"
+    },
+    {
+      "key": "windows",
+      "label": "Windows"
+    },
+    {
+      "key": "android",
+      "label": "Android"
+    },
+    {
+      "key": "web",
+      "label": "Web"
+    }
+  ],
+  "edges": [
+    {
+      "source": "unity",
+      "target": "shader-graph"
+    },
+    {
+      "source": "unity",
+      "target": "hdrp"
+    },
+    {
+      "source": "unity",
+      "target": "dotween"
+    },
+    {
+      "source": "unity",
+      "target": "yarn-spinner"
+    },
+    {
+      "source": "unity",
+      "target": "webgl"
+    },
+    {
+      "source": "unity",
+      "target": "xr"
+    },
+    {
+      "source": "unity",
+      "target": "photon"
+    },
+    {
+      "source": "hdrp",
+      "target": "unity"
+    },
+    {
+      "source": "web",
+      "target": "webrtc"
+    },
+    {
+      "source": "firebase",
+      "target": "cloud-firestore"
+    },
+    {
+      "source": "firebase",
+      "target": "realtime-database"
+    },
+    {
+      "source": "firebase",
+      "target": "cloud-messaging"
+    },
+    {
+      "source": "webrtc",
+      "target": "livekit"
+    },
+    {
+      "source": "webrtc",
+      "target": "agora"
+    },
+    {
+      "source": "rest-apis",
+      "target": "postman"
+    },
+    {
+      "source": "rest-apis",
+      "target": "node.js"
+    },
+    {
+      "source": "aws",
+      "target": "ec2"
+    },
+    {
+      "source": "aws",
+      "target": "s3"
+    },
+    {
+      "source": "aws",
+      "target": "amplify"
+    },
+    {
+      "source": "linux",
+      "target": "debian"
+    },
+    {
+      "source": "linux",
+      "target": "arch"
+    },
+    {
+      "source": "linux",
+      "target": "ubuntu"
+    },
+    {
+      "source": "node.js",
+      "target": "npm"
+    },
+    {
+      "source": "windows",
+      "target": "wpf"
+    },
+    {
+      "source": "windows",
+      "target": "win32-apis"
+    },
+    {
+      "source": "windows",
+      "target": "direct2d"
+    },
+    {
+      "source": "windows",
+      "target": "directwrite"
+    },
+    {
+      "source": "windows",
+      "target": ".net-framework"
+    },
+    {
+      "source": "git",
+      "target": "github"
+    },
+    {
+      "source": "git",
+      "target": "gitlab"
+    },
+    {
+      "source": "unity",
+      "target": "plastic-scm"
+    },
+    {
+      "source": "github",
+      "target": "github-workflows"
+    },
+    {
+      "source": "web",
+      "target": "webgl"
+    }
+  ],
+  "categories": [
+    {
+      "category": "ai-tools",
+      "items": ["comfyui", "ollama", "github-copilot", "claude-code", "codex"]
+    },
+    {
+      "category": "media-tools",
+      "items": [
+        "aseprite",
+        "adobe-photoshop",
+        "coreldraw",
+        "adobe-premiere-pro",
+        "davinci-resolve",
+        "audacity",
+        "ffmpeg",
+        "obs",
+        "canva",
+        "figma",
+        "media-tools"
+      ]
+    },
+    {
+      "category": "programming-languages",
+      "items": [
+        "python",
+        "javascript",
+        "html",
+        "css",
+        "typescript",
+        "c",
+        "c++",
+        "c#",
+        "java",
+        "kotlin",
+        "ahk"
+      ]
+    },
+    {
+      "category": "ide",
+      "items": [
+        "visual-studio",
+        "vs-code",
+        "unity",
+        "unreal-engine",
+        "unreal-editor-for-fortnite",
+        "roblox-studio",
+        "android-studio",
+        "obsidian"
+      ]
+    },
+    {
+      "category": "networking-infrastructure",
+      "items": [
+        "vps",
+        "ssh",
+        "tailscale",
+        "rdp",
+        "nomachine",
+        "parsec",
+        "adguard-server",
+        "onvif",
+        "hyper-v",
+        "mqtt",
+        "vmware",
+        "wireshark",
+        "docker"
+      ]
+    },
+    {
+      "category": "cloud",
+      "items": [
+        "aws",
+        "azure",
+        "netlify",
+        "vercel",
+        "google-cloud",
+        "agora",
+        "livekit",
+        "firebase"
+      ]
+    },
+    {
+      "category": "databases",
+      "items": [
+        "mongodb",
+        "sqlite"
+      ]
+    },
+    {
+      "category": "publishing",
+      "items": [
+        "google-ads",
+        "admob",
+        "steam",
+        "google-play"
+      ]
+    },
+    {
+      "category": "platforms",
+      "items": [
+        "windows",
+        "linux",
+        "android",
+        "web"
+      ]
+    }
+  ]
+}

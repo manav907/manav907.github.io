@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Gully Champ was a visual novel and cricket strategy game, so it had a lot of moving parts: branching Yarn dialogue, character expressions, background changes, calendar-driven scenes, world navigation, and gameplay data. The challenge was not only building those systems, but making sure new story content could be added without quietly breaking the game."><meta name="viewport" content="width=device-width"><title>Validating Narrative Content in Gully Champ</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Validating Narrative Content in Gully Champ</h1>
+<p>Gully Champ was a visual novel and cricket strategy game, so it had a lot of moving parts: branching Yarn dialogue, character expressions, background changes, calendar-driven scenes, world navigation, and gameplay data. The challenge was not only building those systems, but making sure new story content could be added without quietly breaking the game.</p>
+<p>A major part of that challenge came from how the narrative content was produced. Much of the dialogue was written separately and in parallel, with the Yarn dialogue in particular being worked on by many different people. Each character also required a large number of sprite variations. Some characters had character-specific emotion sets, while others used a shared set of emotions conceptually but still required separate sprite assets for each character.</p>
+<p>Because sprite preparation took significant time, the writing and implementation work could not always wait for the final assets to be ready. Duplicate sprite mappings were therefore sometimes used as a temporary solution so that parallel work could continue. This was useful for keeping production moving, but it also introduced another class of content problems that needed to be caught later.</p>
+<p>That workflow made small inconsistencies surprisingly difficult to track down. An incorrect character name, incorrectly named sprite, missing sprite reference, or duplicate mapping could cause a scene to behave incorrectly. Some problems were obvious, but others were much more subtle. A sprite might technically exist but be mapped to the wrong character, or a temporary duplicate could remain in place without being immediately noticeable.</p>
+<p>Without automated validation, finding these issues often meant manually playing the game and waiting for the problematic scene to appear. Even then, some errors were subtle enough that they would not immediately look like bugs, meaning they might not even be identified as the source of a problem. A mistake several steps earlier in a dialogue sequence could only become apparent once the scene was being presented to the player.</p>
+<p>These were the problems the validation tools were primarily designed to solve.</p>
+<p>I built Unity Editor validation tools around these failure points. The tools parsed Yarn commands, checked their parameters, validated character and expression names against the project enums, and confirmed that the required sprites actually existed through the dialogue sprite mappings. They also checked calendar entries against valid Yarn nodes and validated presentation rules, such as narration or choices appearing while character sprites were still on screen.</p>
+<p>For example, if a writer used an invalid <code>SetCharacterExpression</code> command, the validator could identify the command and report its missing or incorrect arguments before the scene was played. If a sprite was missing or incorrectly referenced, the tool could report the broken mapping directly. Instead of discovering a bad scene during a playthrough and then tracing the problem back through potentially hundreds of lines of dialogue, the issue was surfaced directly in the editor.</p>
+<p>The goal was not to produce a report containing every theoretical warning. It was to make the warnings useful enough that the team would actually act on them. After filtering out noisy or low-value results, roughly 700 possible QA issues were reduced to 52 actionable ones. That distinction mattered. A report full of false positives quickly becomes background noise, while a focused report gives writers and developers a concrete list of problems worth investigating.</p>
+<p>These checks were part of a broader validation system covering other content and presentation rules as well. However, the cross-references between dialogue, characters, emotions, and sprites were a particularly important problem because they sat directly at the intersection of many people working on the project in parallel.</p>
+<p>The rest of Gully Champ had its own complexity: a world map, date-based progression, rewards, and a cricket card system involving timing, bowling variations, targets, and tutorial flow. The narrative validation tools helped make the story side dependable enough to work alongside those systems rather than becoming a fragile handoff between writing and gameplay.</p>
+<p>Gully Champ reinforced something I value about production tooling: as content grows, the tools used to validate that content become part of the game development process itself. Turning fragile, designer-authored workflows into reliable automated checks meant that the team could work in parallel, move faster, and catch problems without relying entirely on someone manually playing through the game and hoping to notice them.</p>
+<div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080"><source src="/generated/media/video/64deb4a8133a4af5d9c867d9016a047e/original.mp4" type="video/mp4" /></video></div></article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

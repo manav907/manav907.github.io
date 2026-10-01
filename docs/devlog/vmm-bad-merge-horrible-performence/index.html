@@ -1,0 +1,404 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="![[Victorian_Murder_Mystery_banner_72eb1ff28b.avif]]"><meta name="viewport" content="width=device-width"><title>Undead Code and the 20 FPS Curse</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "idle";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><link rel="stylesheet" href="/_astro/about.DUoKkE1-.css">
+<style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/about">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
+This site is designed to run on all devices including low end mobile
+            phones, but it pushes your ship (device) very hard and it may
+            overheat.
+</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
+Emergency Stop
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
+Idle
+</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
+Engage Hyperdrive
+</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_banner_72eb1ff28b.avif" src="/generated/media/image/9510759e558fb6393b40a995389abd0f/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="3" style="aspect-ratio: 3" width="1500" height="500" /></div><h1>Undead Code and the 20 FPS Curse</h1>
+<p>At the time, I had only <strong>recently joined the company and was still within my first month</strong>. I was working on <em>Victorian Murder Mystery</em> as part of the QA team and was still getting familiar with the project, its systems, and the way the team worked.</p>
+<p>While testing the game, I started running into some serious performance issues. On my relatively powerful gaming machine, the project was running at around <strong>20 FPS</strong>. I asked around to see if anyone else was experiencing the same thing, only to discover that the problem was affecting everyone, and in some cases it was <strong>much worse for them</strong>, with some team members seeing <strong>below 15 FPS and large performance spikes</strong>.</p>
+<p>It also seemed like the issue had been around for a while and that most people had effectively <strong>given up on finding the root cause</strong>. Since investigating it wasn&#39;t initially part of my responsibilities, I started looking into it informally while continuing with my normal testing.</p>
+<p>A lot of testing was being done directly in the Unity Editor, so I began using some temporary settings to make the project more manageable. Eventually, the project manager noticed those settings. Since they were also struggling with the performance, particularly on an older MacBook, they asked me to properly investigate the issue and see if I could find the underlying cause.</p>
+<p>That was when the investigation became a more focused debugging task.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_1_274d73a741.avif" src="/generated/media/image/137f9b3168105bedf5548f6a4acf07af/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>Starting With the Obvious</h2>
+<p>My first step was to investigate whether the problem was primarily coming from the art and asset side of the project.</p>
+<p>I had a short video call with the lead 3D artist to go through the performance issues. We identified several areas where the assets and rendering setup could be improved, but it quickly became clear that those changes were not enough to explain the scale of the problem.</p>
+<p>There was still a much larger performance cost that we hadn&#39;t accounted for.</p>
+<p>I moved on to profiling the project in Unity, expecting to find an expensive script or an obvious rendering bottleneck.</p>
+<p>Instead, I found very little.</p>
+<p>No individual script stood out as the obvious culprit, and nothing on the rendering side immediately explained why performance was dropping so severely.</p>
+<p>The more I investigated, the more confusing the problem became.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_2_24349024bf.avif" src="/generated/media/image/cf3407b1bde81961aeff59fab010f6e1/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>The Wrong Test</h2>
+<p>The problem was that I was not reproducing the conditions that were actually causing the performance degradation.</p>
+<p>Most of my initial tests were artificial or isolated. They were useful for looking at the project in a controlled environment, but they weren&#39;t representative of how the game was actually being tested.</p>
+<p>This mattered because <em>Victorian Murder Mystery</em> was a multiplayer project.</p>
+<p>I eventually decided to profile the game during an actual multiplayer testing session instead of continuing to test it in isolation.</p>
+<p>That was when the first major clue appeared.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_3_06dd63f41c.avif" src="/generated/media/image/7f9459f758235e8e0f68b808637655c7/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>When the Players Joined</h2>
+<p>As players joined the session, performance started to degrade.</p>
+<p>At first, I wanted to confirm whether the players themselves were actually responsible for the performance drop. I ran a more controlled test where I focused on adding players and observing the performance impact.</p>
+<p>The results seemed to point in that direction, but there was a problem with the test: it was still somewhat artificial. I was isolating the number of players rather than reproducing everything those players were actually doing during a real session.</p>
+<p>So while I had confirmed that the issue was related to the multiplayer workflow, I hadn&#39;t yet identified the specific action that was triggering it.</p>
+<p>Looking more closely at the sequence of events revealed that the performance degradation was particularly noticeable while players were going through the character-selection system.</p>
+<p>Then I found an even more specific clue.</p>
+<p><strong>Players didn&#39;t actually have to select a character. Simply previewing one was enough to cause the problem.</strong></p>
+<p>That gave me a concrete interaction to investigate.</p>
+<p>I started tracing what happened whenever a player previewed a character.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_4_2efa813b32.avif" src="/generated/media/image/643e156765ea59f46a6baf94e768c31e/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>The Character Preview</h2>
+<p>The preview system was creating more than just a character model.</p>
+<p>Each preview could create a <strong>duplicate character model, camera, and lighting setup</strong> for displaying the character.</p>
+<p>That was already suspicious.</p>
+<p>If those objects were being created repeatedly without the previous ones being properly removed, every additional preview could add more work for the game to process.</p>
+<p>The next question was why this behavior was happening in the first place.</p>
+<p>The answer led to a piece of code that, by all rights, should have been dead.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_5_9f37202fff.avif" src="/generated/media/image/31329dc55bc2f50ad05f834b38e55260/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>The Undead Code</h2>
+<p>The character-selector system had been completely reworked at some point during development.</p>
+<p>The old implementation was no longer supposed to be part of the project.</p>
+<p>But the old script was still there.</p>
+<p>Not only was it still present in the project, it was still <strong>attached to objects in the scene and had its related references and objects intact</strong>.</p>
+<p>The old system had effectively become undead code.</p>
+<p>It had been replaced from a feature perspective, but it had never actually been removed from the runtime environment.</p>
+<p>As a result, when a player previewed a character, the stale script was still executing its old behavior and creating another preview setup.</p>
+<p>The result was a growing collection of unnecessary runtime objects:</p>
+<p><strong>Character preview → duplicate model → duplicate camera → duplicate lighting → repeat.</strong></p>
+<p>The more players interacted with the system, the more noticeable the performance cost became.</p>
+<p>This finally explained why my earlier profiling had failed to reveal the problem. The expensive behavior wasn&#39;t simply running continuously. It was being triggered by a specific multiplayer interaction that my artificial tests weren&#39;t reproducing.</p>
+<div class="article-media-group article-media-group--single"><img loading="lazy" decoding="async" alt="Victorian_Murder_Mystery_game_image_6_4757afa58d.avif" src="/generated/media/image/e99044a5798c823b468192deda9745ab/original.avif" data-media-status="ok" data-media-kind="image" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080" /></div><h2>Tracing the Problem Back Further</h2>
+<p>Finding the stale script answered <em>what</em> was causing the problem, but I wanted to understand <em>why</em> it had survived the character-selector rework.</p>
+<p>That investigation led to a bad merge.</p>
+<p>During the rework, the old character-selector system should have been removed along with its associated references and scene objects. Instead, the merge preserved them.</p>
+<p>The result was effectively two generations of the system surviving together:</p>
+<p><strong>New character-selector system + old character-selector system.</strong></p>
+<p>The old implementation was no longer needed, but its script and associated objects remained in the scene and continued to execute.</p>
+<p>That made the bad merge the ultimate starting point of the issue.</p>
+<p>The chain looked like this:</p>
+<p><strong>Bad merge</strong>
+↓
+<strong>Old character-selector script survives</strong>
+↓
+<strong>Old references and scene objects remain</strong>
+↓
+<strong>Player previews a character</strong>
+↓
+<strong>Old system creates another model, camera and lighting setup</strong>
+↓
+<strong>Repeated previews accumulate unnecessary objects</strong>
+↓
+<strong>Multiplayer performance degrades</strong></p>
+<p>What initially looked like a broad performance problem was ultimately the consequence of an obsolete system that had survived a merge.</p>
+<h2>Removing the Curse</h2>
+<p>Once the root cause was clear, the fix was relatively focused.</p>
+<p>The stale character-selector script and its related references and objects were removed so that the old preview behavior could no longer execute.</p>
+<p>I then repeated the same multiplayer testing scenario that had exposed the problem and profiled the project again.</p>
+<p>The difference was substantial.</p>
+<p>Performance on my machine improved from roughly <strong>20 FPS to around 120 FPS</strong>.</p>
+<p>More importantly, the performance degradation associated with repeatedly previewing characters was no longer occurring.</p>
+<p>The temporary settings I had been using to make Editor testing manageable were no longer needed as a workaround for this particular issue.</p>
+<p><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="1.7778" style="aspect-ratio: 1.7778" width="1920" height="1080"><source src="/generated/media/video/73144e06aace8252b9bf5cf28c34790b/original.mp4" type="video/mp4" /></video></p>
+<h2>What Made This Problem Difficult</h2>
+<p>The most important part of this investigation wasn&#39;t the final deletion of the stale script. It was figuring out <strong>when and why the performance problem actually appeared</strong>.</p>
+<p>The initial profiling wasn&#39;t useless, but it was being performed against the wrong scenario. There was no obvious script consuming a huge amount of time every frame, and there was no single rendering feature that explained the frame rate.</p>
+<p>Even the first multiplayer test needed another layer of investigation. I initially tried to isolate whether the number of players itself was responsible, but that test was still too artificial. It wasn&#39;t enough to know <em>who</em> was in the session. I needed to reproduce <em>what they were doing</em>.</p>
+<p>The key was reproducing the actual multiplayer workflow.</p>
+<p>Once I saw the sequence:</p>
+<p><strong>players joining → character preview → performance degradation</strong></p>
+<p>the investigation became much more focused.</p>
+<p>From there, I could follow the behavior from the preview system to the duplicate objects, from those objects to the stale script, and finally from the stale script back to the bad merge that had allowed it to survive.</p>
+<h2>The Takeaway</h2>
+<p>This investigation reinforced a simple principle I try to follow when debugging performance problems:</p>
+<p><strong>Before optimizing what is slow, find out what is actually causing the slowdown.</strong></p>
+<p>And before assuming that something is expensive because it is poorly optimized, check whether it should exist at all.</p>
+<p>The character-selector system had already been replaced. From a feature perspective, the old implementation was dead. But because of a bad merge, the old script and its associated objects were still alive in the scene.</p>
+<p>The result was a performance problem that only became obvious when players interacted with the game in the way it was actually intended to be played.</p>
+<p>The final path from problem to solution was:</p>
+<p><strong>20 FPS → multiplayer profiling → character preview identified as the trigger → duplicate preview objects discovered → stale script found → bad merge traced as the origin → obsolete system removed → roughly 120 FPS.</strong></p>
+<p>The code was supposed to be dead.</p>
+<p>It just hadn&#39;t gotten the memo.</p>
+</article> </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 
