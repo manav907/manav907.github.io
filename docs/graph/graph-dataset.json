@@ -24,12 +24,12 @@
     {
       "key": "dotween",
       "label": "DOTween",
-      "image": "/skill-logos/dotween.png"
+      "image": "/skill-logos/dotween.ico"
     },
     {
       "key": "yarn-spinner",
       "label": "Yarn Spinner",
-      "image": "/skill-logos/yarn-spinner.png"
+      "image": "/skill-logos/yarn-spinner.ico"
     },
     {
       "key": "webgl",
@@ -108,7 +108,7 @@
     {
       "key": "vs-code",
       "label": "VS Code",
-      "image": "to-be-added"
+      "image": "/skill-logos/vs-code.ico"
     },
     {
       "key": "obsidian",
@@ -262,7 +262,7 @@
     {
       "key": "python",
       "label": "Python",
-      "image": "/skill-logos/python.svg"
+      "image": "/skill-logos/python.ico"
     },
     {
       "key": "c++",
@@ -365,7 +365,7 @@
     {
       "key": "parsec",
       "label": "Parsec",
-      "image": "to-be-added"
+      "image": "/skill-logos/parsec.ico"
     },
     {
       "key": "tailscale",
@@ -500,11 +500,13 @@
     },
     {
       "key": "windows",
-      "label": "Windows"
+      "label": "Windows",
+      "image": "/skill-logos/windows-11-start.png"
     },
     {
       "key": "android",
-      "label": "Android"
+      "label": "Android",
+      "image": "/skill-logos/android.svg"
     },
     {
       "key": "web",
@@ -728,28 +730,15 @@
     },
     {
       "category": "databases",
-      "items": [
-        "mongodb",
-        "sqlite"
-      ]
+      "items": ["mongodb", "sqlite"]
     },
     {
       "category": "publishing",
-      "items": [
-        "google-ads",
-        "admob",
-        "steam",
-        "google-play"
-      ]
+      "items": ["google-ads", "admob", "steam", "google-play"]
     },
     {
       "category": "platforms",
-      "items": [
-        "windows",
-        "linux",
-        "android",
-        "web"
-      ]
+      "items": ["windows", "linux", "android", "web"]
     }
   ]
 }
