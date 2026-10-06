@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Career portfolio covering projects, experience, skills, and interests."><meta name="viewport" content="width=device-width"><title>Cutting RAM Use in Half by Doubling the Build Size</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
-  const fallbackMode = "idle";
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Around my second month at Idea Usher, I was given a fairly straightforward-sounding task on the VeeLive Metaverse Project: make the Unity WebGL application work reliably on mobile browsers."><meta name="viewport" content="width=device-width"><title>Cutting RAM Use in Half by Doubling the Build Size</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "hyperdrive";
   const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
   let mode = fallbackMode;
 
@@ -18,7 +18,7 @@
 
   window.siteHyperdriveMode = mode;
   document.documentElement.dataset.siteHyperdriveMode = mode;
-})();</script><link rel="stylesheet" href="/_astro/_slug_.DUoKkE1-.css">
+})();</script><link rel="stylesheet" href="/_astro/_slug_.GaBVUFrJ.css">
 <style>.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
 </style></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
   (() => {
@@ -291,23 +291,12 @@ About Me
 Gallary
 </a> <a href="/graph">
 Graph
-</a> </nav> </div> <div class="site-hyperdrive-controls" data-site-hyperdrive-controls> <button class="site-hyperdrive-controls__toggle" type="button" aria-controls="site-hyperdrive-controls-menu" aria-expanded="false" aria-haspopup="true" aria-label="Hyperdrive controls" title="Hyperdrive controls" data-site-hyperdrive-toggle> <svg class="site-hyperdrive-controls__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M4 12h10"></path> <path d="m12 5 7 7-7 7"></path> <path d="M3 6h4"></path> <path d="M3 18h4"></path> </svg> </button> <div class="site-hyperdrive-controls__menu" id="site-hyperdrive-controls-menu" aria-label="Hyperdrive controls" hidden data-site-hyperdrive-menu> <p class="site-hyperdrive-controls__warning">
-This site is designed to run on all devices including low end mobile
-            phones, but it pushes your ship (device) very hard and it may
-            overheat.
-</p> <div class="site-hyperdrive-controls__actions"> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="emergency">
-Emergency Stop
-</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="true" data-site-hyperdrive-option="idle">
-Idle
-</button> <button class="site-hyperdrive-controls__action" type="button" aria-pressed="false" data-site-hyperdrive-option="hyperdrive">
-Engage Hyperdrive
-</button> </div> </div> </div> </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Cutting RAM Use in Half by Doubling the Build Size</h1>
-<h2>Context</h2>
+</a> </nav> </div>  </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <article class="article-content"><h1>Cutting RAM Use in Half by Doubling the Build Size</h1>
 <p>Around my second month at Idea Usher, I was given a fairly straightforward-sounding task on the VeeLive Metaverse Project: make the Unity WebGL application work reliably on mobile browsers.</p>
 <p>VeeLive is a multiplayer metaverse built with Unity and C#, targeting both desktop and mobile WebGL. It includes multiplayer presence, proximity-based voice through Photon Voice, in-game screen sharing through WebRTC, multiple environments, and a CI/CD pipeline that deploys WebGL builds to AWS.</p>
 <p>The mobile controls were not the difficult part.</p>
 <p>The difficult part was getting the application to survive on mobile devices.</p>
-<h2>The Problem: The App Would Simply Die</h2>
+<h2>The First Problem: The App Would Simply Die</h2>
 <p>On most Android phones I tested, the behavior was inconsistent but understandable. The build would usually load, but when I tried loading a particularly large environment such as the Shopping Mall, Chrome would sometimes crash with an <strong>“Aw, Snap!”</strong> page indicating that the tab had run out of memory.</p>
 <p>iPhones were stranger.</p>
 <p>Instead of showing an obvious out-of-memory error, the page would silently reload at roughly the same point during loading. After a couple of attempts, Safari would eventually show a generic <strong>“Can’t Open the Page”</strong> message.</p>

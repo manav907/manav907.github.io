@@ -351,7 +351,8 @@
     },
     {
       "key": "rdp",
-      "label": "RDP"
+      "label": "RDP",
+      "image": "/skill-logos/remmina.ico"
     },
     {
       "key": "ssh",
@@ -472,7 +473,8 @@
     },
     {
       "key": "typescript",
-      "label": "TypeScript"
+      "label": "TypeScript",
+      "image": "/skill-logos/typescript.png"
     },
     {
       "key": "ide",
@@ -491,10 +493,6 @@
       "label": "Publishing"
     },
     {
-      "key": "databases",
-      "label": "Databases"
-    },
-    {
       "key": "platforms",
       "label": "Platforms"
     },
@@ -511,6 +509,53 @@
     {
       "key": "web",
       "label": "Web"
+    },
+    {
+      "key": "blender",
+      "label": "Blender",
+      "image": "/skill-logos/blender.svg"
+    },
+    {
+      "key": "cors",
+      "label": "CORS"
+    },
+    {
+      "key": "aws-lambda",
+      "label": "Lambda",
+      "image": "/skill-logos/aws-lambda.svg"
+    },
+    {
+      "key": "aws-iam",
+      "label": "IAM",
+      "image": "/skill-logos/aws-iam.svg"
+    },
+    {
+      "key": "aws-cloud-shell",
+      "label": "Cloud Shell",
+      "image": "/skill-logos/aws-cloud-shell.svg"
+    },
+    {
+      "key": "aws-cloud-front",
+      "label": "Cloud Front",
+      "image": "/skill-logos/aws-cloud-front.svg"
+    },
+    {
+      "key": "virtual-box",
+      "label": "Virtual Box",
+      "image": "/skill-logos/virtual-box.ico"
+    },
+    {
+      "key": "assembly",
+      "label": "Assembly"
+    },
+    {
+      "key": "nginx",
+      "label": "Nginx",
+      "image": "/skill-logos/nginx.ico"
+    },
+    {
+      "key": "scm",
+      "label": "SCM (Source Control Management)"
     }
   ],
   "edges": [
@@ -541,10 +586,6 @@
     {
       "source": "unity",
       "target": "photon"
-    },
-    {
-      "source": "hdrp",
-      "target": "unity"
     },
     {
       "source": "web",
@@ -589,6 +630,22 @@
     {
       "source": "aws",
       "target": "amplify"
+    },
+    {
+      "source": "aws",
+      "target": "aws-cloud-shell"
+    },
+    {
+      "source": "aws",
+      "target": "aws-iam"
+    },
+    {
+      "source": "aws",
+      "target": "aws-lambda"
+    },
+    {
+      "source": "aws",
+      "target": "aws-cloud-front"
     },
     {
       "source": "linux",
@@ -645,6 +702,14 @@
     {
       "source": "web",
       "target": "webgl"
+    },
+    {
+      "source": "scm",
+      "target": "git"
+    },
+    {
+      "source": "scm",
+      "target": "plastic-scm"
     }
   ],
   "categories": [
@@ -665,7 +730,8 @@
         "obs",
         "canva",
         "figma",
-        "media-tools"
+        "media-tools",
+        "blender"
       ]
     },
     {
@@ -681,7 +747,8 @@
         "c#",
         "java",
         "kotlin",
-        "ahk"
+        "ahk",
+        "assembly"
       ]
     },
     {
@@ -712,7 +779,12 @@
         "mqtt",
         "vmware",
         "wireshark",
-        "docker"
+        "docker",
+        "virtual-box",
+        "nginx",
+        "cors",
+        "mongodb",
+        "sqlite"
       ]
     },
     {
@@ -727,10 +799,6 @@
         "livekit",
         "firebase"
       ]
-    },
-    {
-      "category": "databases",
-      "items": ["mongodb", "sqlite"]
     },
     {
       "category": "publishing",
