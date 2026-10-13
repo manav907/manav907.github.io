@@ -1,0 +1,396 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Career portfolio covering projects, experience, skills, and interests."><meta name="viewport" content="width=device-width"><title>How Three Physics Problems Created One Nearly Invisible Bug</title><script>if ("scrollRestoration" in history) { history.scrollRestoration = "auto"; }</script><script>(() => {
+  const fallbackMode = "hyperdrive";
+  const allowedModes = new Set(["emergency", "idle", "hyperdrive"]);
+  let mode = fallbackMode;
+
+  try {
+    const savedMode = localStorage.getItem("siteHyperdriveMode");
+    const savedQuality = localStorage.getItem("siteBackgroundQuality");
+
+    if (savedMode && allowedModes.has(savedMode)) {
+      mode = savedMode;
+    } else if (savedQuality === "high") {
+      mode = "hyperdrive";
+    }
+  } catch {
+    mode = fallbackMode;
+  }
+
+  window.siteHyperdriveMode = mode;
+  document.documentElement.dataset.siteHyperdriveMode = mode;
+})();</script><style>.content-page{min-width:0;position:relative}.content-page__article{min-width:0}.content-page__article,.article-content{scroll-margin-block-start:calc(var(--site-header-height) + var(--space-md))}.content-page__article h1,.content-page__article h2,.content-page__article h3,.content-page__article h4,.content-page__article h5,.content-page__article h6,.article-content img,.article-content video{scroll-margin-block-start:calc(var(--site-header-height) + var(--space-md))}.article-outline-rail{display:none}@media(min-width:82rem){.article-outline-rail:not([hidden]){--article-outline-gap: clamp(1.5rem, 2vw, 2rem);display:block;inline-size:clamp(10rem,calc(50vw - 50% - var(--article-outline-gap) - var(--space-page-inline)),16rem);inset-block:0;inset-inline-start:calc(100% + var(--article-outline-gap));position:absolute}.article-outline{display:flex;flex-direction:column;max-block-size:calc(100vh - var(--site-header-overlay-space) - var(--space-lg));min-width:0;position:sticky;top:var(--site-header-overlay-space)}.article-outline__title{color:var(--color-heading);font-size:var(--font-size-sm);font-weight:800;letter-spacing:.08em;margin:0 0 var(--space-sm);text-transform:uppercase}.article-outline nav{min-block-size:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}.article-outline__list{border-inline-start:1px solid var(--glass-border);list-style:none;margin:0;padding:0}.article-outline__item{--article-outline-heading-indent: 0rem;--article-outline-media-indent: 0rem;margin:0;min-width:0;position:relative}.article-outline__item[data-outline-level="2"]{--article-outline-heading-indent: 1rem}.article-outline__item[data-outline-level="3"]{--article-outline-heading-indent: 2rem}.article-outline__item--image,.article-outline__item--video{--article-outline-media-indent: 1rem}.article-outline__item:before{background-image:linear-gradient(to right,color-mix(in srgb,var(--glass-border) 78%,transparent) 0 1px,transparent 1px);background-repeat:repeat-x;background-size:1rem 100%;content:"";inline-size:calc(var(--article-outline-heading-indent) + var(--article-outline-media-indent));inset-block:0;inset-inline-start:.85rem;pointer-events:none;position:absolute}.article-outline__link{align-items:baseline;border-inline-start:2px solid transparent;color:var(--color-muted);display:flex;font-size:var(--font-size-sm);gap:var(--space-xs);line-height:1.35;margin-inline-start:-1px;min-width:0;padding:.38rem .6rem;padding-inline-start:calc(.6rem + var(--article-outline-heading-indent) + var(--article-outline-media-indent));text-decoration:none}.article-outline__item--image .article-outline__link,.article-outline__item--video .article-outline__link{color:color-mix(in srgb,var(--color-muted) 82%,transparent);font-size:calc(var(--font-size-sm) * .92)}.article-outline__link:focus-visible,.article-outline__link.is-active{border-inline-start-color:var(--color-accent);color:var(--color-heading);outline:none}@media(hover:hover)and (pointer:fine){.article-outline__link:hover{border-inline-start-color:var(--color-accent);color:var(--color-heading);outline:none}}.article-outline__link.is-active{background:color-mix(in srgb,var(--color-accent) 9%,transparent)}.article-outline__type{color:var(--color-accent);flex:0 0 auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.62rem;font-weight:800;letter-spacing:.04em}.article-outline__type:empty{display:none}.article-outline__label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.article-outline__top{border-block-start:1px solid var(--glass-border);color:var(--color-accent);flex:0 0 auto;font-size:var(--font-size-sm);margin-block-start:var(--space-sm);padding-block-start:var(--space-sm);text-decoration:none}.article-outline__top:hover,.article-outline__top:focus-visible{color:var(--color-heading);outline:none;text-decoration:underline;text-underline-offset:.2em}}.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
+</style>
+<link rel="stylesheet" href="/_astro/_slug_.GaBVUFrJ.css"></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+  (() => {
+    const roots = document.querySelectorAll("[data-starfield-background]");
+
+    for (const root of roots) {
+      const canvas = root.querySelector("[data-starfield-canvas]");
+      const glow = root.querySelector("[data-starfield-glow]");
+
+      if (
+        !(root instanceof HTMLElement) ||
+        !(canvas instanceof HTMLCanvasElement)
+      ) {
+        continue;
+      }
+
+      const context = canvas.getContext("2d", { alpha: false });
+
+      if (!context) {
+        continue;
+      }
+
+      const maximumWarpSpeed = 22;
+      const fieldOfView = 128;
+      const warpDuration = 1500;
+      const starfieldSettings = {
+        density: 1600,
+        maxStars: 1100,
+        minStars: 360,
+        speedScale: 1.12,
+      };
+      let deviceScale = 1;
+      let height = 0;
+      let live = false;
+      let raf = 0;
+      let resizeTimer = 0;
+      let speed = 1;
+      let stars = [];
+      let warpStartedAt = 0;
+      let width = 0;
+
+      const colorProbe = document.createElement("span");
+      colorProbe.setAttribute("aria-hidden", "true");
+      colorProbe.style.pointerEvents = "none";
+      colorProbe.style.position = "absolute";
+      colorProbe.style.visibility = "hidden";
+      root.append(colorProbe);
+
+      const getThemeColor = (name, fallback) =>
+        window.getComputedStyle(root).getPropertyValue(name).trim() || fallback;
+      const resolveThemeColor = (name, fallback) => {
+        const value = getThemeColor(name, fallback);
+        colorProbe.style.color = fallback;
+        colorProbe.style.color = value;
+
+        return (
+          window.getComputedStyle(colorProbe).color.trim() || value || fallback
+        );
+      };
+      const starfieldColors = {
+        space: "",
+        streak: "",
+      };
+      const syncThemeColors = () => {
+        starfieldColors.space = resolveThemeColor(
+          "--starfield-space",
+          getThemeColor("--color-bg", ""),
+        );
+        starfieldColors.streak = resolveThemeColor(
+          "--starfield-streak",
+          getThemeColor("--color-text", ""),
+        );
+      };
+
+      const normalizeHyperdriveMode = (value) =>
+        value === "emergency" || value === "idle" || value === "hyperdrive"
+          ? value
+          : "idle";
+      let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
+      const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
+      const syncRootVisibility = () => {
+        root.hidden = !isHyperdriveEngaged();
+      };
+
+      const seed = (star) => {
+        star.x = (Math.random() - 0.5) * 2400;
+        star.y = (Math.random() - 0.5) * 2400;
+        star.z = Math.random() * 1200 + 40;
+        return star;
+      };
+
+      const resize = () => {
+        const bounds = root.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * deviceScale);
+        canvas.height = Math.round(height * deviceScale);
+        context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+        const starCount = Math.min(
+          starfieldSettings.maxStars,
+          Math.max(
+            starfieldSettings.minStars,
+            Math.round((width * height) / starfieldSettings.density),
+          ),
+        );
+        stars = Array.from({ length: starCount }, () => seed({}));
+      };
+
+      const getWarpEase = (progress) =>
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const updateWarp = (now) => {
+        if (!warpStartedAt) {
+          speed = 1;
+          return;
+        }
+
+        const progress = Math.min(1, (now - warpStartedAt) / warpDuration);
+        const easedProgress = getWarpEase(progress);
+        speed = 1 + (maximumWarpSpeed - 1) * easedProgress;
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = String(
+            Math.min(0.82, (speed - 1) / maximumWarpSpeed),
+          );
+        }
+
+        if (progress >= 1) {
+          warpStartedAt = 0;
+          speed = 1;
+
+          if (glow instanceof HTMLElement) {
+            glow.style.opacity = "0";
+          }
+        }
+      };
+
+      const draw = (now) => {
+        updateWarp(now);
+        context.fillStyle = starfieldColors.space;
+        context.fillRect(0, 0, width, height);
+        context.beginPath();
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        for (const star of stars) {
+          const previousScale = fieldOfView / star.z;
+          const previousX = star.x * previousScale + centerX;
+          const previousY = star.y * previousScale + centerY;
+
+          star.z -= speed * starfieldSettings.speedScale * 2.4;
+
+          if (star.z < 6) {
+            seed(star);
+            continue;
+          }
+
+          const currentScale = fieldOfView / star.z;
+          const currentX = star.x * currentScale + centerX;
+          const currentY = star.y * currentScale + centerY;
+
+          if (
+            currentX < -60 ||
+            currentX > width + 60 ||
+            currentY < -60 ||
+            currentY > height + 60
+          ) {
+            seed(star);
+            continue;
+          }
+
+          context.moveTo(previousX, previousY);
+          context.lineTo(currentX, currentY);
+        }
+
+        context.strokeStyle = starfieldColors.streak;
+        context.lineCap = "round";
+        context.lineWidth = Math.min(2.2, 0.7 + speed * 0.07);
+        context.stroke();
+
+        if (live) {
+          raf = window.requestAnimationFrame(draw);
+        }
+      };
+
+      const start = () => {
+        if (live || !isHyperdriveEngaged()) {
+          return;
+        }
+
+        live = true;
+        raf = window.requestAnimationFrame(draw);
+      };
+
+      const stop = () => {
+        live = false;
+        window.cancelAnimationFrame(raf);
+      };
+
+      const triggerWarp = () => {
+        if (!isHyperdriveEngaged()) {
+          return;
+        }
+
+        warpStartedAt = performance.now();
+        start();
+      };
+
+      const setHyperdriveMode = (nextMode) => {
+        const normalizedMode = normalizeHyperdriveMode(nextMode);
+
+        if (normalizedMode === hyperdriveMode) {
+          return;
+        }
+
+        hyperdriveMode = normalizedMode;
+        syncRootVisibility();
+
+        if (isHyperdriveEngaged()) {
+          resize();
+          triggerWarp();
+          return;
+        }
+
+        stop();
+
+        if (glow instanceof HTMLElement) {
+          glow.style.opacity = "0";
+        }
+      };
+
+      syncThemeColors();
+      syncRootVisibility();
+      resize();
+      start();
+      window.setTimeout(triggerWarp, 260);
+
+      window.addEventListener("resize", () => {
+        syncThemeColors();
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resize, 160);
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stop();
+          return;
+        }
+
+        if (isHyperdriveEngaged()) {
+          start();
+        }
+      });
+
+      window.addEventListener("pageshow", triggerWarp);
+      window.addEventListener("pagehide", stop, { once: true });
+      document.addEventListener("site-hyperdrive-mode-change", (event) => {
+        setHyperdriveMode(event.detail?.mode);
+      });
+    }
+  })();
+</script>  <header class="site-header"> <div class="site-header__inner"> <nav class="site-nav" aria-label="Main navigation"> <a href="/">
+About Me
+</a> <a href="/portfolio-feed">
+Gallary
+</a> <a href="/graph">
+Graph
+</a> </nav> </div>  </header> <main>  <div class="article-page" data-astro-cid-uhaqmce5> <div class="content-page" data-content-page data-outline-media-enabled="false"> <div class="content-page__article" id="article-top">  <article class="article-content"><h1>How Three Physics Problems Created One Nearly Invisible Bug</h1>
+<h2>A Broken Game and an Unfamiliar Project</h2>
+<p>When I first joined Hopscotch Games as a QA tester, one of the projects I was introduced to was <strong>Kitchen Chaos</strong>, a Roblox game I was asked to test.</p>
+<p>My first experience was confusing. I couldn&#39;t figure out how to progress through the game. I wasn&#39;t sure whether I was misunderstanding the mechanics, missing an interaction, or encountering a bug.</p>
+<p>After asking around, I learned that the game had been stuck in a broken state for about a month. The progression issue was already known, but it hadn&#39;t been resolved.</p>
+<p>Since I was new to the team, I was initially assigned simpler QA tasks: checking UI consistency, verifying that text matched its corresponding images, and making sure interface elements were presented correctly.</p>
+<p>Still, the broken progression kept bothering me.</p>
+<p>I started investigating it on the side while continuing my assigned testing. I wasn&#39;t particularly familiar with the project&#39;s systems, and I didn&#39;t have a clear starting point.</p>
+<p>Over time, however, I began noticing a pattern in how the game was failing.</p>
+<h2>Two Symptoms, No Clear Explanation</h2>
+<p>The progression issue seemed to involve NPCs that weren&#39;t reliably present where they were supposed to be.</p>
+<p>Sometimes, I would reach an area and find no NPCs at all. This made me suspect they hadn&#39;t spawned correctly.</p>
+<p>Other times, an NPC would be visible until I approached it. Getting close enough to make physical contact could cause it to disappear almost instantly.</p>
+<p>That suggested a different possibility. Perhaps approaching an NPC triggered an interaction script that accidentally destroyed or disabled it.</p>
+<p><strong>One symptom looked like a spawning problem. The other looked like an interaction problem.</strong></p>
+<p>I couldn&#39;t tell whether these were separate bugs or different symptoms of the same underlying issue.</p>
+<p>I eventually asked a developer about the NPCs, hoping to rule out some straightforward explanations.</p>
+<p>Were they being destroyed? Were they disabled? Could they be spawning at incorrect coordinates?</p>
+<p>According to the developer, the NPCs weren&#39;t being destroyed or disabled, and their coordinates were correct.</p>
+<p>That left me with an apparent contradiction.</p>
+<p>The NPCs were clearly missing from the player&#39;s perspective, yet the information available suggested that they still existed and were positioned correctly.</p>
+<p>I didn&#39;t have enough evidence to challenge those findings, but they didn&#39;t explain what I was seeing either.</p>
+<p>I was examining the state left behind by the bug without knowing what happened during the disappearance.</p>
+<h2>An Accidental Advantage: Recording at 240 FPS</h2>
+<p>I happened to have a setup that turned out to be unusually useful.</p>
+<p>I generally played Roblox with an <strong>uncapped frame rate</strong> rather than its default limit. This wasn&#39;t something I&#39;d configured specifically for QA; it was simply how I preferred to play.</p>
+<p>Separately, I&#39;d been experimenting with recording gameplay at <strong>240 FPS</strong> because I wanted to capture slow-motion footage from another game as a hobby.</p>
+<p>Neither choice was originally related to Kitchen Chaos.</p>
+<p>But after repeatedly seeing NPCs vanish without an obvious explanation, I realized the recording setup might help me catch something I was missing.</p>
+<p><strong>Having the setup was coincidental. Deciding to use it for debugging was deliberate.</strong></p>
+<p>I recorded the glitch and began scrubbing through the footage frame by frame, concentrating on the moments immediately before an NPC disappeared.</p>
+<p>Instead of repeatedly observing the aftermath, I could finally examine the transition itself.</p>
+<p>That&#39;s when I noticed something I hadn&#39;t been able to see during normal gameplay.</p>
+<h2>The One Frame That Changed the Investigation</h2>
+<p><strong>The NPC wasn&#39;t being destroyed. It was falling through the floor.</strong></p>
+<p>The critical transition was visible in just one captured frame.</p>
+<p>An NPC that appeared to be standing normally on the walking surface suddenly passed below it and disappeared from view.</p>
+<p>At normal playback speed, the movement was practically imperceptible. The character seemed to vanish instantly, leaving almost no indication of what had happened.</p>
+<p>The footage didn&#39;t establish that the entire physics failure lasted exactly one simulation frame. It showed that the decisive fall-through behavior was observable in only one frame of the recording.</p>
+<p>That distinction didn&#39;t change the significance of the discovery.</p>
+<p>I finally had direct evidence of the mechanism behind the disappearance.</p>
+<p>It also connected the two symptoms I&#39;d been struggling to explain.</p>
+<p>If an NPC fell through the floor sometime after spawning, before the player encountered it, the result looked like a spawning failure.</p>
+<p>If the NPC remained standing until a player approached and physically pushed it, the same fall-through behavior could look like a broken interaction.</p>
+<p><strong>What appeared to be two unrelated bugs was actually the same physical failure occurring under different circumstances.</strong></p>
+<p>The recording shifted the investigation away from spawning and interaction scripts.</p>
+<p>The question was no longer why the NPCs were supposedly being deleted.</p>
+<p>It was why they could pass through a floor that should have supported them.</p>
+<h2>From Visual Evidence to a Physics Explanation</h2>
+<p>I shared the footage and my findings with a developer.</p>
+<p>Until then, most of my investigation had involved observing gameplay, questioning the apparent symptoms, and examining recorded footage.</p>
+<p>I had established <strong>what was happening</strong>, but I didn&#39;t yet understand <strong>why the physics allowed it to happen</strong>.</p>
+<p>The conversation helped bridge that gap.</p>
+<p>With evidence of the NPCs falling through the floor, we could focus on the physical setup rather than continuing to investigate spawning or interaction behavior.</p>
+<p>Three configuration problems emerged from that discussion.</p>
+<h3>1. Incorrect Normals and an Improper Walking Surface</h3>
+<p>The first issue involved the floor&#39;s normals and walking-surface configuration.</p>
+<p>Surface normals describe the orientation of geometry. Although visual normals alone don&#39;t necessarily control physical collisions, the incorrectly configured surface geometry was part of the collision problem identified during the discussion.</p>
+<p>The floor appeared to be an ordinary walking surface, but its setup wasn&#39;t providing the reliable physical contact the NPCs needed.</p>
+<p>This was a useful distinction. The environment looked correct from the player&#39;s perspective, so there had been little reason to suspect the floor while investigating missing characters.</p>
+<h3>2. Complex Mesh Colliders on NPC Feet</h3>
+<p>The second problem involved the NPCs&#39; collision geometry.</p>
+<p>Instead of simpler capsule or cylinder-shaped colliders, the NPCs used complex mesh colliders around their feet.</p>
+<p>Mesh-based collision shapes can produce complicated contact behavior because their geometry is more irregular.</p>
+<p>For NPCs that primarily need predictable contact with walking surfaces, this complexity wasn&#39;t particularly useful.</p>
+<p>The developer&#39;s explanation helped connect this configuration to the behavior I&#39;d recorded.</p>
+<p>When a player approached closely enough to physically push an NPC, the additional contact could disturb an already unreliable interaction between the NPC&#39;s feet and the floor.</p>
+<p>What looked like an interaction bug was actually a physical disturbance exposing a collision problem.</p>
+<h3>3. Gravity That the NPCs Didn&#39;t Need</h3>
+<p>The third problem was gravity.</p>
+<p>The NPCs were configured to be affected by gravity even though their intended behavior didn&#39;t require it.</p>
+<p>Gravity wasn&#39;t necessarily responsible for the initial loss of contact with the floor. Its role became important afterward.</p>
+<p>Once an NPC lost support and began passing through the walking surface, gravity could continue pulling it downward, carrying it outside the playable area.</p>
+<p>Together, the three problems explained the failure:</p>
+<p><strong>Improper walking surface → unstable collider contact → NPC falls through the floor → gravity carries it below the map.</strong></p>
+<p>The discussion also helped clarify why the earlier debugging information had been misleading.</p>
+<p>The NPCs could remain in the correct object hierarchy even after physically leaving the playable area.</p>
+<p>An object&#39;s place in the Roblox Studio hierarchy describes how it is organized, not necessarily where it is positioned in the 3D world.</p>
+<p>Likewise, confirming coordinates at one moment doesn&#39;t prove an NPC remains there throughout gameplay.</p>
+<p>This didn&#39;t establish exactly why the earlier coordinate check hadn&#39;t revealed the problem. But it explained why those checks weren&#39;t sufficient to rule out a physical displacement.</p>
+<p><strong>My footage established the fall-through behavior. The developer discussion connected that observation to the underlying physics configuration.</strong></p>
+<p>That collaboration turned an unexplained disappearance into a specific technical problem.</p>
+<h2>From Root Cause to an Actionable Fix</h2>
+<p>The investigation gave the developers a clearer direction for addressing the progression blocker.</p>
+<p>The corrective work involved fixing the floor&#39;s walking-surface setup, replacing unsuitable NPC foot mesh colliders with simpler collision geometry, and removing unnecessary gravity.</p>
+<p>Each correction addressed a different contributor to the failure rather than treating the NPC disappearance as a single unexplained scripting problem.</p>
+<p>My contribution was identifying the fall-through behavior, capturing evidence, and bringing that discovery into a technical discussion that helped establish the root cause.</p>
+<p>I wasn&#39;t responsible for implementing the corrections, and I don&#39;t have a documented record of the exact changes ultimately deployed.</p>
+<p>The original symptoms also provided two useful regression scenarios.</p>
+<p>The first involved observing whether NPCs remained on the floor over time without player contact. The second involved approaching and physically pushing NPCs to see whether the same displacement occurred.</p>
+<p>Successful verification would require the NPCs to remain within the playable area under both conditions, with gameplay progression continuing normally.</p>
+<p>The same high-frame-rate recording approach could also be used to compare the collision behavior before and after correction.</p>
+<p>The documented outcome of my investigation was identifying the failure mechanism and helping narrow down its causes. A confirmed post-fix verification result would require additional evidence.</p>
+<h2>What I Took Away from the Investigation</h2>
+<p>The most important lesson wasn&#39;t simply that several physics configuration problems could combine to break a game.</p>
+<p>It was learning to question <strong>what the available debugging evidence actually proves</strong>.</p>
+<p>The developer&#39;s initial checks weren&#39;t necessarily incorrect. They simply didn&#39;t capture the physical event responsible for the NPCs disappearing.</p>
+<p>I also learned that identifying a bug doesn&#39;t always require independently understanding every system behind it.</p>
+<p>My frame-by-frame analysis revealed the missing piece of evidence. Discussing that evidence with someone more familiar with the game&#39;s physics helped turn it into an actionable explanation.</p>
+<p>The recording setup had been available by coincidence, but recognizing its usefulness and applying it to the investigation was a deliberate decision.</p>
+<p>In Kitchen Chaos, a month-old progression blocker had multiple misleading symptoms, but the decisive evidence was visible in a single captured frame.</p>
+<p><strong>Finding that frame was what turned a confusing disappearance into an actionable physics investigation.</strong></p>
+</article> </div> <aside class="article-outline-rail" aria-label="On this page" hidden data-article-outline> <div class="article-outline"> <p class="article-outline__title">On this page</p> <nav aria-label="Article outline"> <ol class="article-outline__list" data-article-outline-list></ol> </nav> </div> </aside> </div> <script type="module">const E=document.querySelectorAll("[data-content-page]");function w(t,r){return t.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||r}function v(t,r,l){const c=t.id.trim()||r;let i=c,g=2;for(;l.has(i)||document.getElementById(i)!==null&&document.getElementById(i)!==t;)i=`${c}-${g}`,g+=1;return t.id=i,l.add(i),i}function A(t,r,l){return[t.getAttribute("alt"),t.getAttribute("aria-label"),t.getAttribute("title")].find(i=>i?.trim())?.trim()||`${r==="image"?"Image":"Video"} ${l}`}function $(t,r){const l=new Set,u=[];let c=0,i=0,g=!1,m=1;for(const a of t.querySelectorAll("h1, h2, h3, h4, h5, h6, img, video")){if(a instanceof HTMLHeadingElement){const p=a.textContent?.trim();if(!p)continue;const b=!g;if(g=!0,!b&&a.tagName!=="H2"&&a.tagName!=="H3")continue;m=b?1:a.tagName==="H3"?3:2;const I=`section-${u.length+1}`,k=v(a,w(p,I),l);u.push({element:a,id:k,kind:"heading",label:p,level:m});continue}if(!r)continue;const f=a instanceof HTMLVideoElement,e=f?"video":"image",s=f?++i:++c,n=a,o=A(n,e,s),d=`${e}-${s}`,h=v(n,w(`${e}-${o}`,d),l);u.push({element:n,id:h,kind:e,label:o,level:m})}return u}for(const t of E){const r=t.querySelector(".content-page__article"),l=t.querySelector("[data-article-outline]"),u=t.querySelector("[data-article-outline-list]");if(!r||!l||!u)continue;const c=$(r,t.dataset.outlineMediaEnabled==="true");if(c.length<2)continue;const i=new Map,g=document.createDocumentFragment();for(const e of c){const s=document.createElement("li"),n=document.createElement("a"),o=document.createElement("span"),d=document.createElement("span");s.className=`article-outline__item article-outline__item--${e.kind}`,s.dataset.outlineLevel=String(e.level),n.className="article-outline__link",n.href=`#${encodeURIComponent(e.id)}`,n.title=e.label,o.className="article-outline__type",o.textContent=e.kind==="heading"?"":e.kind==="image"?"IMG":"VID",o.setAttribute("aria-hidden","true"),d.className="article-outline__label",d.textContent=e.label,e.kind!=="heading"&&n.setAttribute("aria-label",`${e.kind==="image"?"Image":"Video"}: ${e.label}`),n.append(o,d),s.append(n),g.append(s),i.set(e.id,n)}u.append(g),l.hidden=!1;let m=0;const a=()=>{m=0;const e=Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--site-header-height")),s=(Number.isFinite(e)?e:0)+32;let n=c[0];for(const o of c)if(o.element.getBoundingClientRect().top<=s)n=o;else break;for(const[o,d]of i){const h=o===n?.id;d.classList.toggle("is-active",h),h?(d.setAttribute("aria-current","location"),d.scrollIntoView({block:"nearest"})):d.removeAttribute("aria-current")}},f=()=>{m===0&&(m=window.requestAnimationFrame(a))};if(a(),window.addEventListener("scroll",f,{passive:!0}),window.addEventListener("resize",f),window.addEventListener("pagehide",()=>{window.removeEventListener("scroll",f),window.removeEventListener("resize",f),m!==0&&window.cancelAnimationFrame(m)},{once:!0}),window.location.hash){let e=window.location.hash.slice(1);try{e=decodeURIComponent(e)}catch{}c.find(n=>n.id===e)?.element.scrollIntoView()}}</script>  </div>  </main> <script type="module">const p=new Set(["emergency","idle","hyperdrive"]),v=window,n=document.querySelector("[data-site-hyperdrive-controls]"),i=document.querySelector("[data-site-hyperdrive-toggle]"),a=document.querySelector("[data-site-hyperdrive-menu]"),y=document.querySelectorAll("[data-site-hyperdrive-option]"),h=document.querySelectorAll("video[autoplay]"),c=document.querySelector(".site-header");function r(){if(!c)return;const e=Math.ceil(c.getBoundingClientRect().height);e>0&&document.documentElement.style.setProperty("--site-header-height",`${e}px`)}if(c){r();let e;"ResizeObserver"in window&&(e=new ResizeObserver(r),e.observe(c)),window.addEventListener("resize",r),document.fonts?.ready?.then(r),window.addEventListener("pagehide",()=>{window.removeEventListener("resize",r),e?.disconnect()},{once:!0})}function u(e){return typeof e=="string"&&p.has(e)?e:"idle"}function l(e){for(const t of y){const o=u(t.dataset.siteHyperdriveOption);t.setAttribute("aria-pressed",String(o===e))}}function d(e){!n||!i||!a||(n.dataset.siteHyperdriveOpen=String(e),i.setAttribute("aria-expanded",String(e)),a.hidden=!e)}function m(e){const t=u(e);v.siteHyperdriveMode=t,document.documentElement.dataset.siteHyperdriveMode=t;try{localStorage.setItem("siteHyperdriveMode",t)}catch{}l(t),document.dispatchEvent(new CustomEvent("site-hyperdrive-mode-change",{detail:{mode:t}}))}l(u(v.siteHyperdriveMode));d(!1);for(const e of y)e.addEventListener("click",()=>{m(e.dataset.siteHyperdriveOption),d(!1)});if(n&&i&&a){const e=()=>{d(n.dataset.siteHyperdriveOpen!=="true")},t=s=>{s.target instanceof Node&&!n.contains(s.target)&&d(!1)},o=s=>{s.key==="Escape"&&n.dataset.siteHyperdriveOpen==="true"&&(d(!1),i.focus())};i.addEventListener("click",e),document.addEventListener("click",t),window.addEventListener("keydown",o),window.addEventListener("pagehide",()=>{i.removeEventListener("click",e),document.removeEventListener("click",t),window.removeEventListener("keydown",o)},{once:!0})}for(const e of h)e instanceof HTMLVideoElement&&!e.closest("[data-masonry-feed]")&&(e.defaultMuted=!0,e.muted=!0,e.play().catch(()=>{}));</script> </body> </html> 

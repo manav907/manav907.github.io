@@ -285,6 +285,30 @@
       "image": "/skill-logos/nodejs.svg"
     },
     {
+      "key": "react",
+      "label": "React"
+    },
+    {
+      "key": "next.js",
+      "label": "Next.js"
+    },
+    {
+      "key": "vue",
+      "label": "Vue"
+    },
+    {
+      "key": "astro",
+      "label": "Astro"
+    },
+    {
+      "key": "vite",
+      "label": "Vite"
+    },
+    {
+      "key": "tailwind-css",
+      "label": "Tailwind CSS"
+    },
+    {
       "key": "npm",
       "label": "npm",
       "image": "/skill-logos/npm.svg"
@@ -478,11 +502,23 @@
     },
     {
       "key": "ide",
-      "label": "IDEs (Integrated Development Environments)"
+      "label": "IDEs"
     },
     {
-      "key": "networking-infrastructure",
-      "label": "Networking & Infrastructure"
+      "key": "game-engines",
+      "label": "Game Engines"
+    },
+    {
+      "key": "web-development",
+      "label": "Web Development"
+    },
+    {
+      "key": "networking-and-remote-access",
+      "label": "Networking & Remote Access"
+    },
+    {
+      "key": "servers-and-virtualization",
+      "label": "Servers & Virtualization"
     },
     {
       "key": "cloud",
@@ -505,10 +541,6 @@
       "key": "android",
       "label": "Android",
       "image": "/skill-logos/android.svg"
-    },
-    {
-      "key": "web",
-      "label": "Web"
     },
     {
       "key": "blender",
@@ -556,6 +588,130 @@
     {
       "key": "scm",
       "label": "SCM (Source Control Management)"
+    },
+    {
+      "key": "projects",
+      "label": "Projects"
+    },
+    {
+      "key": "gully-champ",
+      "label": "Gully Champ"
+    },
+    {
+      "key": "mochi-the-blob",
+      "label": "Mochi the Blob"
+    },
+    {
+      "key": "basics-of-sprite-animations-in-unity",
+      "label": "Basics of Sprite Animations in Unity"
+    },
+    {
+      "key": "battlefleet-arma-emergence",
+      "label": "Battlefleet Arma: Emergence"
+    },
+    {
+      "key": "bluff-irl",
+      "label": "Bluff IRL"
+    },
+    {
+      "key": "boost-protocol-terminal-velocity",
+      "label": "Boost Protocol: Terminal Velocity"
+    },
+    {
+      "key": "cmat2",
+      "label": "CMAT2"
+    },
+    {
+      "key": "cricket-match-3",
+      "label": "Cricket Match 3"
+    },
+    {
+      "key": "cricket-nut-sort",
+      "label": "Cricket Nut Sort"
+    },
+    {
+      "key": "cricket-rush",
+      "label": "Cricket Rush"
+    },
+    {
+      "key": "deck-of-the-dead",
+      "label": "Deck of the Dead"
+    },
+    {
+      "key": "decimus",
+      "label": "Decimus"
+    },
+    {
+      "key": "fix-steam-icon",
+      "label": "Fix Steam Icon"
+    },
+    {
+      "key": "grid-rpg-puzzler",
+      "label": "Grid RPG Puzzler"
+    },
+    {
+      "key": "hindi-text-demo",
+      "label": "Hindi Text Demo"
+    },
+    {
+      "key": "home-assistant",
+      "label": "Home Assistant"
+    },
+    {
+      "key": "ik-and-physics-research",
+      "label": "IK and Physics Research"
+    },
+    {
+      "key": "kitchen-chaos",
+      "label": "Kitchen Chaos"
+    },
+    {
+      "key": "linux-load-work",
+      "label": "Linux Load Work"
+    },
+    {
+      "key": "mini-minds",
+      "label": "Mini Minds (CMAT)"
+    },
+    {
+      "key": "numbered-taskbar",
+      "label": "Numbered Taskbar"
+    },
+    {
+      "key": "perfect-drop",
+      "label": "Perfect Drop"
+    },
+    {
+      "key": "sci-fi-u6",
+      "label": "Sci-Fi-U6"
+    },
+    {
+      "key": "space-runner",
+      "label": "Space Runner"
+    },
+    {
+      "key": "taskbar-pin-debug",
+      "label": "Taskbar Pin Debug"
+    },
+    {
+      "key": "tokyo-racetrack",
+      "label": "Tokyo Racetrack"
+    },
+    {
+      "key": "valley-of-the-aztec-temple",
+      "label": "Valley of the Aztec Temple"
+    },
+    {
+      "key": "veelive-metaverse",
+      "label": "VeeLive Metaverse"
+    },
+    {
+      "key": "victorian-murder-mystery",
+      "label": "Victorian Murder Mystery"
+    },
+    {
+      "key": "win-search-icon-fix",
+      "label": "Win Search Icon Fix"
     }
   ],
   "edges": [
@@ -588,10 +744,6 @@
       "target": "photon"
     },
     {
-      "source": "web",
-      "target": "webrtc"
-    },
-    {
       "source": "firebase",
       "target": "cloud-firestore"
     },
@@ -610,14 +762,6 @@
     {
       "source": "webrtc",
       "target": "agora"
-    },
-    {
-      "source": "rest-apis",
-      "target": "postman"
-    },
-    {
-      "source": "rest-apis",
-      "target": "node.js"
     },
     {
       "source": "aws",
@@ -660,10 +804,6 @@
       "target": "ubuntu"
     },
     {
-      "source": "node.js",
-      "target": "npm"
-    },
-    {
       "source": "windows",
       "target": "wpf"
     },
@@ -698,10 +838,6 @@
     {
       "source": "github",
       "target": "github-workflows"
-    },
-    {
-      "source": "web",
-      "target": "webgl"
     },
     {
       "source": "scm",
@@ -756,18 +892,40 @@
       "items": [
         "visual-studio",
         "vs-code",
-        "unity",
-        "unreal-engine",
-        "unreal-editor-for-fortnite",
-        "roblox-studio",
         "android-studio",
         "obsidian"
       ]
     },
     {
-      "category": "networking-infrastructure",
+      "category": "game-engines",
       "items": [
-        "vps",
+        "unity",
+        "unreal-engine",
+        "unreal-editor-for-fortnite",
+        "roblox-studio"
+      ]
+    },
+    {
+      "category": "web-development",
+      "items": [
+        "react",
+        "next.js",
+        "vue",
+        "astro",
+        "vite",
+        "node.js",
+        "tailwind-css",
+        "webrtc",
+        "webgl",
+        "cors",
+        "rest-apis",
+        "npm",
+        "postman"
+      ]
+    },
+    {
+      "category": "networking-and-remote-access",
+      "items": [
         "ssh",
         "tailscale",
         "rdp",
@@ -775,14 +933,19 @@
         "parsec",
         "adguard-server",
         "onvif",
-        "hyper-v",
         "mqtt",
+        "wireshark"
+      ]
+    },
+    {
+      "category": "servers-and-virtualization",
+      "items": [
+        "vps",
+        "hyper-v",
         "vmware",
-        "wireshark",
         "docker",
         "virtual-box",
         "nginx",
-        "cors",
         "mongodb",
         "sqlite"
       ]
@@ -806,7 +969,77 @@
     },
     {
       "category": "platforms",
-      "items": ["windows", "linux", "android", "web"]
+      "items": ["windows", "linux", "android"]
+    },
+    {
+      "category": "projects",
+      "items": [
+        "gully-champ",
+        "mochi-the-blob",
+        "basics-of-sprite-animations-in-unity",
+        "battlefleet-arma-emergence",
+        "bluff-irl",
+        "boost-protocol-terminal-velocity",
+        "cmat2",
+        "cricket-match-3",
+        "cricket-nut-sort",
+        "cricket-rush",
+        "deck-of-the-dead",
+        "decimus",
+        "fix-steam-icon",
+        "grid-rpg-puzzler",
+        "hindi-text-demo",
+        "home-assistant",
+        "ik-and-physics-research",
+        "kitchen-chaos",
+        "linux-load-work",
+        "mini-minds",
+        "numbered-taskbar",
+        "perfect-drop",
+        "sci-fi-u6",
+        "space-runner",
+        "taskbar-pin-debug",
+        "tokyo-racetrack",
+        "valley-of-the-aztec-temple",
+        "veelive-metaverse",
+        "victorian-murder-mystery",
+        "win-search-icon-fix"
+      ]
+    }    
+  ],
+  "views": [
+    {
+      "key": "all",
+      "label": "All",
+      "allCategories": true,
+      "includeOthers": true,
+      "default": false
+    },
+    {
+      "key": "tools",
+      "label": "Tools",
+      "categories": [
+        "ai-tools",
+        "media-tools",
+        "programming-languages",
+        "ide",
+        "game-engines",
+        "web-development",
+        "networking-and-remote-access",
+        "servers-and-virtualization",
+        "cloud",
+        "publishing",
+        "platforms"
+      ],
+      "includeOthers": true,
+      "default": true
+    },
+    {
+      "key": "projects",
+      "label": "Projects",
+      "categories": ["projects"],
+      "includeOthers": false,
+      "default": false
     }
   ]
 }
