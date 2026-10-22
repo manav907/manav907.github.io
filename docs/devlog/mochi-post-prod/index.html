@@ -5,12 +5,9 @@
 
   try {
     const savedMode = localStorage.getItem("siteHyperdriveMode");
-    const savedQuality = localStorage.getItem("siteBackgroundQuality");
 
     if (savedMode && allowedModes.has(savedMode)) {
       mode = savedMode;
-    } else if (savedQuality === "high") {
-      mode = "hyperdrive";
     }
   } catch {
     mode = fallbackMode;
@@ -20,29 +17,54 @@
   document.documentElement.dataset.siteHyperdriveMode = mode;
 })();</script><style>.content-page{min-width:0;position:relative}.content-page__article{min-width:0}.content-page__article,.article-content{scroll-margin-block-start:calc(var(--site-header-height) + var(--space-md))}.content-page__article h1,.content-page__article h2,.content-page__article h3,.content-page__article h4,.content-page__article h5,.content-page__article h6,.article-content img,.article-content video{scroll-margin-block-start:calc(var(--site-header-height) + var(--space-md))}.article-outline-rail{display:none}@media(min-width:82rem){.article-outline-rail:not([hidden]){--article-outline-gap: clamp(1.5rem, 2vw, 2rem);display:block;inline-size:clamp(10rem,calc(50vw - 50% - var(--article-outline-gap) - var(--space-page-inline)),16rem);inset-block:0;inset-inline-start:calc(100% + var(--article-outline-gap));position:absolute}.article-outline{display:flex;flex-direction:column;max-block-size:calc(100vh - var(--site-header-overlay-space) - var(--space-lg));min-width:0;position:sticky;top:var(--site-header-overlay-space)}.article-outline__title{color:var(--color-heading);font-size:var(--font-size-sm);font-weight:800;letter-spacing:.08em;margin:0 0 var(--space-sm);text-transform:uppercase}.article-outline nav{min-block-size:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}.article-outline__list{border-inline-start:1px solid var(--glass-border);list-style:none;margin:0;padding:0}.article-outline__item{--article-outline-heading-indent: 0rem;--article-outline-media-indent: 0rem;margin:0;min-width:0;position:relative}.article-outline__item[data-outline-level="2"]{--article-outline-heading-indent: 1rem}.article-outline__item[data-outline-level="3"]{--article-outline-heading-indent: 2rem}.article-outline__item--image,.article-outline__item--video{--article-outline-media-indent: 1rem}.article-outline__item:before{background-image:linear-gradient(to right,color-mix(in srgb,var(--glass-border) 78%,transparent) 0 1px,transparent 1px);background-repeat:repeat-x;background-size:1rem 100%;content:"";inline-size:calc(var(--article-outline-heading-indent) + var(--article-outline-media-indent));inset-block:0;inset-inline-start:.85rem;pointer-events:none;position:absolute}.article-outline__link{align-items:baseline;border-inline-start:2px solid transparent;color:var(--color-muted);display:flex;font-size:var(--font-size-sm);gap:var(--space-xs);line-height:1.35;margin-inline-start:-1px;min-width:0;padding:.38rem .6rem;padding-inline-start:calc(.6rem + var(--article-outline-heading-indent) + var(--article-outline-media-indent));text-decoration:none}.article-outline__item--image .article-outline__link,.article-outline__item--video .article-outline__link{color:color-mix(in srgb,var(--color-muted) 82%,transparent);font-size:calc(var(--font-size-sm) * .92)}.article-outline__link:focus-visible,.article-outline__link.is-active{border-inline-start-color:var(--color-accent);color:var(--color-heading);outline:none}@media(hover:hover)and (pointer:fine){.article-outline__link:hover{border-inline-start-color:var(--color-accent);color:var(--color-heading);outline:none}}.article-outline__link.is-active{background:color-mix(in srgb,var(--color-accent) 9%,transparent)}.article-outline__type{color:var(--color-accent);flex:0 0 auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.62rem;font-weight:800;letter-spacing:.04em}.article-outline__type:empty{display:none}.article-outline__label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.article-outline__top{border-block-start:1px solid var(--glass-border);color:var(--color-accent);flex:0 0 auto;font-size:var(--font-size-sm);margin-block-start:var(--space-sm);padding-block-start:var(--space-sm);text-decoration:none}.article-outline__top:hover,.article-outline__top:focus-visible{color:var(--color-heading);outline:none;text-decoration:underline;text-underline-offset:.2em}}.article-page[data-astro-cid-uhaqmce5]{margin-inline:auto;max-width:var(--content-narrow-width);padding-inline:var(--space-page-inline);padding-block-start:clamp(5rem,4vw,3rem)}
 </style>
-<link rel="stylesheet" href="/_astro/_slug_.GaBVUFrJ.css"></head> <body> <div class="starfield-background" data-starfield-background aria-hidden="true" hidden data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> </div> <script>
+<link rel="stylesheet" href="/_astro/_slug_.e7PGVLnb.css"></head> <body> <div class="starfield-background" data-starfield-background data-starfield-phase="intro" data-starfield-seamless-transitions="true" data-starfield-warp-animation="false" aria-hidden="true" data-astro-cid-7dees75c> <canvas class="starfield-background__canvas" data-starfield-canvas data-astro-cid-7dees75c></canvas> <div class="starfield-background__glow" data-starfield-glow data-astro-cid-7dees75c></div> <div class="starfield-background__vignette" data-astro-cid-7dees75c></div> <div class="starfield-background__transition-cover" data-astro-cid-7dees75c> <span class="starfield-background__loading-text" data-astro-cid-7dees75c>Loading…</span> </div> </div> <script>
   (() => {
     const roots = document.querySelectorAll("[data-starfield-background]");
+    const announceSiteIntroComplete = () => {
+      if (document.documentElement.dataset.siteIntroComplete === "true") {
+        return;
+      }
+
+      document.documentElement.dataset.siteIntroComplete = "true";
+      document.dispatchEvent(new CustomEvent("site-intro-complete"));
+    };
+
+    if (roots.length === 0) {
+      announceSiteIntroComplete();
+    }
 
     for (const root of roots) {
       const canvas = root.querySelector("[data-starfield-canvas]");
       const glow = root.querySelector("[data-starfield-glow]");
+      const transitionCover = root.querySelector(
+        ".starfield-background__transition-cover",
+      );
 
       if (
         !(root instanceof HTMLElement) ||
         !(canvas instanceof HTMLCanvasElement)
       ) {
+        if (root instanceof HTMLElement) {
+          root.dataset.starfieldPhase = "running";
+        }
+        announceSiteIntroComplete();
         continue;
       }
 
       const context = canvas.getContext("2d", { alpha: false });
 
       if (!context) {
+        root.dataset.starfieldPhase = "running";
+        announceSiteIntroComplete();
         continue;
       }
 
       const maximumWarpSpeed = 22;
       const fieldOfView = 128;
+      const seamlessTransitionsEnabled =
+        root.dataset.starfieldSeamlessTransitions === "true";
+      const warpAnimationEnabled =
+        root.dataset.starfieldWarpAnimation === "true";
       const warpDuration = 1500;
       const starfieldSettings = {
         density: 1600,
@@ -53,6 +75,7 @@
       let deviceScale = 1;
       let height = 0;
       let live = false;
+      let navigationPending = false;
       let raf = 0;
       let resizeTimer = 0;
       let speed = 1;
@@ -99,8 +122,9 @@
           : "idle";
       let hyperdriveMode = normalizeHyperdriveMode(window.siteHyperdriveMode);
       const isHyperdriveEngaged = () => hyperdriveMode === "hyperdrive";
-      const syncRootVisibility = () => {
-        root.hidden = !isHyperdriveEngaged();
+      const completeSiteIntro = () => {
+        root.dataset.starfieldPhase = "running";
+        announceSiteIntroComplete();
       };
 
       const seed = (star) => {
@@ -153,6 +177,10 @@
         if (progress >= 1) {
           warpStartedAt = 0;
           speed = 1;
+
+          if (root.dataset.starfieldPhase === "intro-running") {
+            completeSiteIntro();
+          }
 
           if (glow instanceof HTMLElement) {
             glow.style.opacity = "0";
@@ -228,6 +256,13 @@
           return;
         }
 
+        if (!warpAnimationEnabled) {
+          warpStartedAt = 0;
+          speed = 1;
+          start();
+          return;
+        }
+
         warpStartedAt = performance.now();
         start();
       };
@@ -240,7 +275,6 @@
         }
 
         hyperdriveMode = normalizedMode;
-        syncRootVisibility();
 
         if (isHyperdriveEngaged()) {
           resize();
@@ -249,17 +283,152 @@
         }
 
         stop();
+        completeSiteIntro();
 
         if (glow instanceof HTMLElement) {
           glow.style.opacity = "0";
         }
       };
 
+      const playIntro = () => {
+        navigationPending = false;
+        document.documentElement.dataset.siteIntroComplete = "false";
+        root.dataset.starfieldPhase = "intro";
+
+        if (!isHyperdriveEngaged()) {
+          completeSiteIntro();
+          return;
+        }
+
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            if (
+              !warpAnimationEnabled &&
+              transitionCover instanceof HTMLElement
+            ) {
+              const finishIntro = () => {
+                transitionCover.removeEventListener(
+                  "transitionend",
+                  finishIntroAfterOpacity,
+                );
+                transitionCover.removeEventListener(
+                  "transitioncancel",
+                  finishIntro,
+                );
+                completeSiteIntro();
+              };
+              const finishIntroAfterOpacity = (transitionEvent) => {
+                if (transitionEvent.propertyName === "opacity") {
+                  finishIntro();
+                }
+              };
+
+              transitionCover.addEventListener(
+                "transitionend",
+                finishIntroAfterOpacity,
+              );
+              transitionCover.addEventListener("transitioncancel", finishIntro);
+            }
+
+            root.dataset.starfieldPhase = "intro-running";
+            triggerWarp();
+
+            if (
+              !warpAnimationEnabled &&
+              !(transitionCover instanceof HTMLElement)
+            ) {
+              completeSiteIntro();
+            }
+          });
+        });
+      };
+
       syncThemeColors();
-      syncRootVisibility();
       resize();
-      start();
-      window.setTimeout(triggerWarp, 260);
+      draw(performance.now());
+
+      window.addEventListener("pageshow", () => {
+        if (seamlessTransitionsEnabled) {
+          playIntro();
+          return;
+        }
+
+        completeSiteIntro();
+        triggerWarp();
+      });
+
+      window.addEventListener("click", (event) => {
+        if (navigationPending) {
+          event.preventDefault();
+          return;
+        }
+
+        if (
+          !seamlessTransitionsEnabled ||
+          !isHyperdriveEngaged() ||
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey ||
+          !(event.target instanceof Element)
+        ) {
+          return;
+        }
+
+        const link = event.target.closest("a[href]");
+
+        if (
+          !(link instanceof HTMLAnchorElement) ||
+          link.hasAttribute("download") ||
+          (link.target && link.target !== "_self")
+        ) {
+          return;
+        }
+
+        const destination = new URL(link.href, window.location.href);
+
+        if (
+          destination.origin !== window.location.origin ||
+          (destination.pathname === window.location.pathname &&
+            destination.search === window.location.search &&
+            destination.hash !== window.location.hash)
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        navigationPending = true;
+        let navigationCommitted = false;
+        const commitNavigation = () => {
+          if (navigationCommitted) {
+            return;
+          }
+
+          navigationCommitted = true;
+          window.location.assign(destination.href);
+        };
+
+        if (!(transitionCover instanceof HTMLElement)) {
+          commitNavigation();
+          return;
+        }
+
+        transitionCover.addEventListener(
+          "transitionend",
+          (transitionEvent) => {
+            if (transitionEvent.propertyName === "opacity") {
+              commitNavigation();
+            }
+          },
+          { once: true },
+        );
+        transitionCover.addEventListener("transitioncancel", commitNavigation, {
+          once: true,
+        });
+        root.dataset.starfieldPhase = "outro";
+      });
 
       window.addEventListener("resize", () => {
         syncThemeColors();
@@ -278,8 +447,7 @@
         }
       });
 
-      window.addEventListener("pageshow", triggerWarp);
-      window.addEventListener("pagehide", stop, { once: true });
+      window.addEventListener("pagehide", stop);
       document.addEventListener("site-hyperdrive-mode-change", (event) => {
         setHyperdriveMode(event.detail?.mode);
       });
@@ -362,7 +530,7 @@ Graph
 <p>We approached the problem at several levels.</p>
 <p>First, we created a <strong>playable ad</strong> that took the core interaction and adapted it into an advertising format. We worked with Luna Playworks and its playable-ad tooling to explore how much of Mochi&#39;s gameplay could be communicated through direct interaction.</p>
 <p>The challenge was to strip the experience down without losing what made it recognizable. The player needed to understand the basic interaction almost immediately, while still getting a sense of the calculated jumping and the consequences of making a bad move.</p>
-<p>We also created a <strong>video advertisement</strong> designed specifically to be engaging rather than simply functioning as a recording of gameplay. Instead of asking someone to interact, the video had to capture attention and communicate the appeal of Mochi quickly.</p>
+<p>We also created a <strong>video advertisement</strong> that intentionally used lower video quality and slight cropping to resemble content uploaded by a small creator. This gave the advertisement a more casual, authentic feel rather than making it look like a polished promotional video.</p>
 <div class="article-media-group article-media-group--single"><video autoplay controls loop muted playsinline preload="auto" aria-label="thumbnail" data-media-status="ok" data-media-kind="video" data-media-aspect-ratio="0.5625" style="aspect-ratio: 0.5625" width="360" height="640"><source src="/generated/media/video/a02a99f5c7e0aeea93fbaaf5c4a0d5b5/original.mp4" type="video/mp4" /></video></div><p>That distinction mattered.</p>
 <p>A gameplay clip shows what the game looks like. An advertisement has to communicate why someone should care.</p>
 <p>We then distributed advertising across multiple platforms, including Instagram, Facebook, YouTube, and the Google Play ecosystem, using the Meta and Google advertising platforms.</p>
