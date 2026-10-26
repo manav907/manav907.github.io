@@ -286,27 +286,33 @@
     },
     {
       "key": "react",
-      "label": "React"
+      "label": "React",
+      "image": "/skill-logos/react.png"
     },
     {
       "key": "next.js",
-      "label": "Next.js"
+      "label": "Next.js",
+      "image": "/skill-logos/nextjs.ico"
     },
     {
       "key": "vue",
-      "label": "Vue"
+      "label": "Vue",
+      "image": "/skill-logos/vue.svg"
     },
     {
       "key": "astro",
-      "label": "Astro"
+      "label": "Astro",
+      "image": "/skill-logos/astro.svg"
     },
     {
       "key": "vite",
-      "label": "Vite"
+      "label": "Vite",
+      "image": "/skill-logos/vite.svg"
     },
     {
       "key": "tailwind-css",
-      "label": "Tailwind CSS"
+      "label": "Tailwind CSS",
+      "image": "/skill-logos/tailwind-css.png"
     },
     {
       "key": "npm",
